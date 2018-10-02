@@ -8,10 +8,14 @@
 
 #include <iostream>
 #include <mpi.h>
+using namespace std;
 
-int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
+int main(int argc, char** argv) {
+    int rank;
+    int size;
+    MPI_Init(&argc, &argv);
+    
+    std::cout << "\n";
     return 0;
 }
 
