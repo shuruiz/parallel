@@ -55,7 +55,7 @@ int main(int argc, char** argv){
 	}
 	
 	double A_0[m][n_row];
-	for(t=0; t<10; i++ ){
+	for(t=0; t<10; i++ ){ // 10 iteration below
 		// std::vector<double>  prev = slice(v, 0, m);
 		// std::vector<double>  prev = slice(v, n_row, m);
 
@@ -98,8 +98,7 @@ int main(int argc, char** argv){
 		}
 
 		double A_0 = A;
-
-		// do the calculation below
+		// do the calculation on core matrix (ghost cells do not included) below
 		for(i=0; i<m; i++){
 			for(j=1;j<n_row-1;j++){
 				if((rank==0 && j==1)|| (rank ==p-1 && j== n_row-2) || i==0 || i==(m-1)){ // boarder 
@@ -112,22 +111,35 @@ int main(int argc, char** argv){
 			}
 		}
 
-		// calcalate the value 
-		// for(i=0;i<m;i++){
-		// 	for(j =0; j<n_row; j++){
-		// 		if(i==0 || i ==m-1 || j==0||j==n-1){
-		// 		A[i][j] = A_0 [i][j];  //unchanged along boarder
-		// 		}
+	}
 
-		// 		else{
-		// 			z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1]) + f(A_0[i][j+1]) + f(A_0[i][j])) / 5;
-		// 			A[i][j] = max(-100, min(100, z)); 
-		// 		}
-		// 	}
-		// }
+	// sum below
+	double sum=0.0;
+	double square_sum=0.0;
 
 
 
+	for(i=0; i<m; i++){
+		for(j=1;j<n_row-1;j++){
+			sum += A[i][j];
+			square_sum += A[i][j]^2;
+		}
+	}
+	double rev_sum;
+	double rev_square;
+
+	if(rank==0){
+		
+		MPI_Send(&square_sum, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD);
+	}else if(rank==p-1){
+		MPI_Send(&sum, 1, MPI_DOUBLE, 0, rank-1, MPI_COMM_WORLD);
+		
+	}else{
+		MPI_Recv(&square_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
+		MPI_Recv(&rev_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
+
+		MPI_Send(&square_sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Send(&sum, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD);
 	}
 
 	endtime = MPI_Wtime();
