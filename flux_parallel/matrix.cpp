@@ -1,9 +1,20 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include <math.h>
+#include <vector>
+
+
 
 using namespace std;
 
+template<typename T>
+// std::vector<T> slice(std::vector<T> &const v, int s, int r){
+
+// 	auto first =v.cbegin()+s+1;
+// 	auto last =v.cbegin+r+2;
+// 	std::vector<T> vec(first, last);
+// 	return vec;
+// }
 
 m=2000;
 n=500;
@@ -23,38 +34,55 @@ int main(int argc, char** argv){
 	}
 
 	n_row = b+2; // append one row above and one row below the target matrix, ghost cells
-	double A[m][n_row];  
+	// std::vector<double> v[m][n_row];
 
+
+	double A[m][n_row] 
+	// initialize below 
 	for(i=0;i<m;i++){
 		for(j=1;j<n_row-1;j++){
-			// initialize below 
+			
 			A[i][j] = i* sin(i) +j * cos(j) + sqrt(i+j);			
 		}
 	}
 
 	MPI_Init(&argc, &argv);
-
 	MPI_Barrier(MPI_COMM_WORLD);
-
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
-
 	// do 10 iteration below
-	starttime = MPI_Wtime();
-	double A_0[m][n];
+	if(rank==0){
+		starttime = MPI_Wtime();
+	}
+	
+	double A_0[m][n_row];
 	for(t=0; t<10; i++ ){
-		A_0 = A;
-		loop = ceil(n*1.0/p);
-		if(rank = p-1){
-			end = n;
-		}
-		else{
-			end = rank*(loop+1);
-		}
+		// std::vector<double>  prev = slice(v, 0, m);
+		// std::vector<double>  prev = slice(v, n_row, m);
+
+		// send self_prev, self_tail 
+		double self_prev, self_tail;
+		for(num ==0; num<m; num++){
+			self_prev[num] = A[1][num]; 
+			self_tail[num] = A[n_row-1][num]; 
+		}  // two ghost cells
+		MPI_Send(&self_prev, 1, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+		MPI_Send(&self_tail, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+
+		double prev[m], tail[m];
+		MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD);
+		MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD);
+		
+		for(num =0; num<m; num++){
+			A[0][num]=prev[num]; 
+			A[n_row][num]= tail[num]; 
+		}  // two ghost cells
+
+		double A_0 = A;
 
 		// calcalate the value 
 		for(i=0;i<m;i++){
-			for(j = rank*loop; j<end; j++){
+			for(j =0; j<n_row; j++){
 				if(i==0 || i ==m-1 || j==0||j==n-1){
 				A[i][j] = A_0 [i][j];  //unchanged along boarder
 				}
