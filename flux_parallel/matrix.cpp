@@ -1,13 +1,11 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include <math.h>
-#include <vector>
-
-
+// #include <vector>
 
 using namespace std;
 
-template<typename T>
+// template<typename T>
 // std::vector<T> slice(std::vector<T> &const v, int s, int r){
 
 // 	auto first =v.cbegin()+s+1;
@@ -19,6 +17,7 @@ template<typename T>
 m=2000;
 n=500;
 p =1; // # of proc. 
+
 int main(int argc, char** argv){
 	
 	double starttime;
@@ -66,42 +65,68 @@ int main(int argc, char** argv){
 			self_prev[num] = A[1][num]; 
 			self_tail[num] = A[n_row-1][num]; 
 		}  // two ghost cells
-		MPI_Send(&self_prev, 1, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
-		MPI_Send(&self_tail, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
 
 		double prev[m], tail[m];
-		MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD);
-		MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD);
-		
-		for(num =0; num<m; num++){
-			A[0][num]=prev[num]; 
-			A[n_row][num]= tail[num]; 
-		}  // two ghost cells
+		if(rank ==0){
+			//communication for proc 1
+			MPI_Send(&self_tail, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD);
+
+		}else if(rank ==p-1){
+			//communication for proc p
+			MPI_Send(&self_prev, 1, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+			MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD);
+
+		}else{
+			// comminication for intermediate processors
+			MPI_Send(&self_prev, 1, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+			MPI_Send(&self_tail, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD);
+			MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD);
+		}
+
+		// if prev || tail not null, then append them to A matrix
+		if(prev){		
+			for(num =0; num<m; num++){
+				A[0][num]=prev[num]; 
+			}  // two ghost cell
+		}
+		if(tail){
+			for(num =0; num<m; num++){
+				A[n_row-1][num]=tail[num]; 
+			}  // ghost cell
+		}
 
 		double A_0 = A;
 
-		// calcalate the value 
-		for(i=0;i<m;i++){
-			for(j =0; j<n_row; j++){
-				if(i==0 || i ==m-1 || j==0||j==n-1){
-				A[i][j] = A_0 [i][j];  //unchanged along boarder
-				}
-
-				else{
-					z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1]) + f(A_0[i][j+1]) + f(A_0[i][j])) / 5;
+		// do the calculation below
+		for(i=0; i<m; i++){
+			for(j=1;j<n_row-1;j++){
+				if((rank==0 && j==1)|| (rank ==p-1 && j== n_row-2) || i==0 || i==(m-1)){ // boarder 
+					A[i][j] = A_0[i][j];
+				}else{
+					z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1]) \
+						+ f(A_0[i][j+1]) + f(A_0[i][j])) / 5;
 					A[i][j] = max(-100, min(100, z)); 
 				}
 			}
 		}
 
-		if(rank ==0){
-			//communication for proc 1
-		}else if(rank ==p-1){
-			//communication for proc p
-		}else{
-			// comminication for intermediate processors
+		// calcalate the value 
+		// for(i=0;i<m;i++){
+		// 	for(j =0; j<n_row; j++){
+		// 		if(i==0 || i ==m-1 || j==0||j==n-1){
+		// 		A[i][j] = A_0 [i][j];  //unchanged along boarder
+		// 		}
 
-		}
+		// 		else{
+		// 			z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1]) + f(A_0[i][j+1]) + f(A_0[i][j])) / 5;
+		// 			A[i][j] = max(-100, min(100, z)); 
+		// 		}
+		// 	}
+		// }
+
+
 
 	}
 
