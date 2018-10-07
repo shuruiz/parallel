@@ -16,11 +16,17 @@ int main(int argc, char** argv){
 	int size;
 
 
-	
+	if(rank==p-1){
+		b = n-floor(n*1.0/p)*rank;
+	}else{
+		b = floor(n*1.0/p);
+	}
 
-	double A[m][n];
-	for(i=0;i<=m;i++){
-		for(j=0;j<=n;j++){
+	n_row = b+2; // append one row above and one row below the target matrix, ghost cells
+	double A[m][n_row];  
+
+	for(i=0;i<m;i++){
+		for(j=1;j<n_row-1;j++){
 			// initialize below 
 			A[i][j] = i* sin(i) +j * cos(j) + sqrt(i+j);			
 		}
@@ -38,12 +44,17 @@ int main(int argc, char** argv){
 	double A_0[m][n];
 	for(t=0; t<10; i++ ){
 		A_0 = A;
+		loop = ceil(n*1.0/p);
+		if(rank = p-1){
+			end = n;
+		}
+		else{
+			end = rank*(loop+1);
+		}
 
-		block = ceil(n*1.0/p);
-
-		tail = min(block*(rank+1),(n%p));
+		// calcalate the value 
 		for(i=0;i<m;i++){
-			for(j = rank*block; j< tail; j++){
+			for(j = rank*loop; j<end; j++){
 				if(i==0 || i ==m-1 || j==0||j==n-1){
 				A[i][j] = A_0 [i][j];  //unchanged along boarder
 				}
@@ -54,31 +65,25 @@ int main(int argc, char** argv){
 				}
 			}
 		}
-	}
 
-/*
-	double A_0[m][n];
+		if(rank ==0){
+			//communication for proc 1
+		}else if(rank ==p-1){
+			//communication for proc p
+		}else{
+			// comminication for intermediate processors
 
-	for(i=0; i<=m; i++){
-		for(j=0;j<=n;j++){
-			A_0 = A;
-			if(i==0 || i ==m-1 || j==0||j==n-1){
-				A[i][j] = A_0 [i][j];  //unchanged along boarder
-			}
-
-			else{
-				z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1]) + f(A_0[i][j+1]) + f(A_0[i][j])) / 5;
-				A[i][j] = max(-100, min(100, z)); 
-			}
 		}
-	}
 
-	*/ 
+	}
 
 	endtime = MPI_Wtime();
 
+	printf("time: %s\n", (endtime-starttime));
+
 }
 
+//function  f
 double f(double x){
 	double y;
 	int i;
