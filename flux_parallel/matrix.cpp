@@ -14,9 +14,9 @@ using namespace std;
 // 	return vec;
 // }
 
-m=2000;
-n=500;
-p =2; // # of proc. 
+int m=2000;
+int n=500;
+int p =2; // # of proc. 
 
 int main(int argc, char** argv){
 	
@@ -24,6 +24,7 @@ int main(int argc, char** argv){
 	double endtime;
 	int rank;
 	int size;
+	int b;
 
 
 	if(rank==p-1){
@@ -32,14 +33,14 @@ int main(int argc, char** argv){
 		b = floor(n*1.0/p);
 	}
 
-	n_row = b+2; // append one row above and one row below the target matrix, ghost cells
+	int n_row = b+2; // append one row above and one row below the target matrix, ghost cells
 	// std::vector<double> v[m][n_row];
 
 
-	double A[m][n_row] 
+	double A[m][n_row]; 
 	// initialize below 
-	for(i=0;i<m;i++){
-		for(j=1;j<n_row-1;j++){
+	for(int i=0;i<m;i++){
+		for(int j=1;j<n_row-1;j++){
 			
 			A[i][j] = i* sin(i) +j * cos(j) + sqrt(i+j);			
 		}
@@ -55,13 +56,13 @@ int main(int argc, char** argv){
 	}
 	
 	double A_0[m][n_row];
-	for(t=0; t<10; i++ ){ // 10 iteration below
+	for(int t=0; t<10; t++ ){ // 10 iteration below
 		// std::vector<double>  prev = slice(v, 0, m);
 		// std::vector<double>  prev = slice(v, n_row, m);
 
 		// send self_prev, self_tail 
 		double self_prev, self_tail;
-		for(num ==0; num<m; num++){
+		for(int num ==0; num<m; num++){
 			self_prev[num] = A[1][num]; 
 			self_tail[num] = A[n_row-1][num]; 
 		}  // two ghost cells
@@ -70,19 +71,19 @@ int main(int argc, char** argv){
 		if(rank ==0){
 			//communication for proc 1
 			MPI_Send(&self_tail, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
-			MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD);
+			MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 
 		}else if(rank ==p-1){
 			//communication for proc p
 			MPI_Send(&self_prev, 1, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
-			MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD);
+			MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 
 		}else{
 			// comminication for intermediate processors
 			MPI_Send(&self_prev, 1, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
 			MPI_Send(&self_tail, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
-			MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD);
-			MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD);
+			MPI_Recv(&prev, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			MPI_Recv(&tail, 1, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 		}
 
 		// if prev || tail not null, then append them to A matrix
@@ -97,7 +98,7 @@ int main(int argc, char** argv){
 			}  // ghost cell
 		}
 
-		double A_0 = A;
+		A_0 = A;
 		// do the calculation on core matrix (ghost cells do not included) below
 		for(i=0; i<m; i++){
 			for(j=1;j<n_row-1;j++){
@@ -119,7 +120,7 @@ int main(int argc, char** argv){
 
 
 
-	for(i=0; i<m; i++){
+	for(int i=0; i<m; i++){
 		for(j=1;j<n_row-1;j++){
 			sum += A[i][j];
 			square_sum += A[i][j]^2;
@@ -129,8 +130,11 @@ int main(int argc, char** argv){
 	double rev_square;
 
 	if(rank==0){
-		MPI_Recv(&rev_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
-		MPI_Recv(&square_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
+
+		MPI_Recv(&rev_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		MPI_Recv(&square_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		sum = sum+rev_sum;
+		square_sum = square_sum+rev_square;
 
 
 	}else if(rank==p-1){
@@ -139,15 +143,16 @@ int main(int argc, char** argv){
 		MPI_Send(&sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 
 	}else{
-		MPI_Recv(&square_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
-		MPI_Recv(&rev_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
+		MPI_Recv(&square_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		MPI_Recv(&rev_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		sum = sum+rev_sum;
+		square_sum = square_sum+rev_square;
 
 		MPI_Send(&square_sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 		MPI_Send(&sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 	}
 
-	sum = sum+rev_sum;
-	square_sum = square_sum+rev_square;
+	
 
 	endtime = MPI_Wtime();
 
