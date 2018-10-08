@@ -16,7 +16,7 @@ using namespace std;
 
 m=2000;
 n=500;
-p =1; // # of proc. 
+p =2; // # of proc. 
 
 int main(int argc, char** argv){
 	
@@ -129,22 +129,36 @@ int main(int argc, char** argv){
 	double rev_square;
 
 	if(rank==0){
-		
-		MPI_Send(&square_sum, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD);
+		MPI_Recv(&rev_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
+		MPI_Recv(&square_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
+
+
 	}else if(rank==p-1){
-		MPI_Send(&sum, 1, MPI_DOUBLE, 0, rank-1, MPI_COMM_WORLD);
-		
+
+		MPI_Send(&square_sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Send(&sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+
 	}else{
 		MPI_Recv(&square_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
 		MPI_Recv(&rev_sum, 1, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD);
 
 		MPI_Send(&square_sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
-		MPI_Send(&sum, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD);
+		MPI_Send(&sum, 1, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 	}
+
+	sum = sum+rev_sum;
+	square_sum = square_sum+rev_square;
 
 	endtime = MPI_Wtime();
 
 	printf("time: %s\n", (endtime-starttime));
+	if(rank==0){
+		printf("SUM: %s\n", sum);
+		printf("square_sum: %s\n", square_sum);
+	}
+	
+
+	MPI_Finalize();
 
 }
 
