@@ -14,6 +14,6 @@ echo "I ran on:"
 cat $PBS_NODEFILE
 # Let PBS handle your output
 
-cd /home/shuruiz/eecs_parallel
+cd /home/shuruiz/eecs_parallel/parallel/flux_parallel
 
 mpirun -np 36 ./matrix 2000 500
