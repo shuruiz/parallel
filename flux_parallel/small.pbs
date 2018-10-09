@@ -1,0 +1,18 @@
+#!/bin/sh
+#PBS -S /bin/sh
+#PBS -N <small_matrix>
+#PBS -A eecs587f18_flux
+#PBS -l qos=flux
+#PBS -l procs=<#proc>,walltime=0:5:00
+#PBS -l pmem=100mb#PBS -q flux
+#PBS -m abe
+#PBS -j oe
+#PBS -V
+
+echo "I ran on:"
+cat $PBS_NODEFILE
+# Let PBS handle your output
+
+cd <flux_assign3>
+
+mpirun -np 2 ./matrix <arguments>
