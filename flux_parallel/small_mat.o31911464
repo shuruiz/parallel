@@ -1,0 +1,13 @@
+I ran on:
+nyx6211
+nyx6222
+nyx6222
+nyx6230
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 36 slots 
+that were requested by the application:
+  ./matrix
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
