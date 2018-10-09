@@ -4,6 +4,7 @@
 #include <math.h>
 // #include <vector>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -41,77 +42,124 @@ int main(int argc, char** argv){
 	int size;
 	int b;
 
+	// MPI_Abort(MPI_COMM_WORLD,11);
+
+
+
 	MPI_Init(&argc, &argv);
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	if(rank==0){
+		starttime = MPI_Wtime();
+	}
 
 	if(rank==p-1){
 		b = n-floor(n*1.0/p)*rank;
+		// printf("b:%d\n", b);
 	}else{
 		b = floor(n*1.0/p);
+		// printf("b:%d\n", b);
 	}
 
 
 	int n_row = b+2; // append one row above and one row below the target matrix, ghost cells
+
+
+
+	// printf("rows:%d\n", n_row);
 	// std::vector<double> v[m][n_row];
-
-
 	double A[m][n_row]; 
+	// printf("m %d", m );
 	// initialize below 
 	for(int i=0;i<m;i++){
 		for(int j=1;j<n_row-1;j++){
-			
-			A[i][j] = i* sin(i) +j * cos(j) + sqrt(i+j);			
+			int j_ =(rank*b)+j;
+			A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);			
 		}
 	}
-
-
 	// do 10 iteration below
-	if(rank==0){
-		starttime = MPI_Wtime();
-	}
-	
-	
+
 	for(int t=0; t<10; t++ ){ // 10 iteration below
 		// std::vector<double>  prev = slice(v, 0, m);
 		// std::vector<double>  prev = slice(v, n_row, m);
 
 		// send self_prev, self_tail 
-		double self_prev[m], self_tail[m];
+		// printf("rank: %d \n", rank);
+		// printf("iteration: %d \n", t);
+		double self_prev[m];
+		double self_tail[m];
+
 		for(int num =0; num<m; num++){
-			self_prev[num] = A[1][num]; 
-			self_tail[num] = A[n_row-2][num]; 
+
+			self_prev[num] = A[num][1]; 
+			self_tail[num] = A[num][n_row-2]; 
+			// cout<< "num"<<num<<endl;
+			// printf("times %d", num );
 		}  // two ghost cells
 
-		double prev[m], tail[m];
+		// printf("get prev tail");
+		cout<<"Get"<<endl;
+		// cout<<"A"<<A[1][1];
+		// cout<<"prev:"<<self_prev[1]<<endl;
+
+		double prev[m]; 
+		double tail[m];
+		int flag_prev = 0; // check if prev has value or not 
+		int flag_tail = 0; 
+
+
+		cout<<"rank"<<rank<<endl;
+		cout<<"m"<<m<<endl;
+		// int count = sizeof(prev);
+		// cout<<"count"<<count<<endl;
 		if(rank ==0){
+			cout<<"sending "<<rank<<endl;
 			//communication for proc 1
-			MPI_Send(&self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
-			MPI_Recv(&tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			MPI_Send(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			cout<<"send"<<rank<<endl;
+
+			MPI_Recv(tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			flag_tail =1; 
+			// printf("ihere, %d", rank);
+			cout<<"rev"<<rank<<endl;
+
 
 		}else if(rank ==p-1){
+			cout<<"sending"<<rank<<endl;
+
 			//communication for proc p
-			MPI_Send(&self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
-			MPI_Recv(&prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			MPI_Send(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+			cout<<"send"<<rank<<endl;
+			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			flag_prev = 1; 
+			cout<<"zzz"<<endl;
+			// printf("ihere, %d", rank);
 
 		}else{
 			// comminication for intermediate processors
-			MPI_Send(&self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
-			MPI_Send(&self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
-			MPI_Recv(&prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-			MPI_Recv(&tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-		}
+			MPI_Send(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+			MPI_Send(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			cout<<"send"<<rank<<endl;
+			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			flag_prev=1;
+			MPI_Recv(tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			flag_tail=1;
 
+			cout<<"comm"<<endl;
+			// printf("ihere, %d", rank);
+		}
+		// cout<<"here"<<endl;
+		cout<<"iteration:"<<t<<endl;
 		// if prev || tail not null, then append them to A matrix
-		if(prev[0]){		
+		if(flag_prev==1){		// has value 
 			for(int num =0; num<m; num++){
-				A[0][num]=prev[num]; 
+				A[num][0]=prev[num]; 
 			}  // two ghost cell
 		}
-		if(tail[0]){
+		if(flag_tail==1){ // has value 
 			for(int num =0; num<m; num++){
-				A[n_row-1][num]=tail[num]; 
+				A[num][n_row-1]=tail[num]; 
 			}  // ghost cell
 		}
 
@@ -137,6 +185,8 @@ int main(int argc, char** argv){
 			}
 		}
 
+		// printf("get Z\n");
+
 	}
 
 	// sum below
@@ -159,19 +209,19 @@ int main(int argc, char** argv){
 
 	if(rank==0){
 
-		MPI_Recv(&rev_sum, 2, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);		
+		MPI_Recv(rev_sum, 2, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);		
 		sum[0] += rev_sum[0];
 		sum[1] += rev_sum[1];
 	
 
 	}else if(rank==p-1){
-		MPI_Send(&sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Send(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 
 	}else{
-		MPI_Recv(&rev_sum, 2, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);	
+		MPI_Recv(rev_sum, 2, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);	
 		sum[0] += rev_sum[0];
 		sum[1] += rev_sum[1];
-		MPI_Send(&sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Send(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 	}
 	if(rank==0){
 		endtime = MPI_Wtime();
