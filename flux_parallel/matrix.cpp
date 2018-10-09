@@ -28,7 +28,7 @@ double f(double x){
 
 	y = x; 
 	for(int i=1; i<=10; i++){
-		y = y+sin(x*i)/(pow(2.0,i));
+		y = y+sin(x*i)/pow(2.0,i);
 	}
 	return y;
 }
@@ -71,11 +71,18 @@ int main(int argc, char** argv){
 	// std::vector<double> v[m][n_row];
 	double A[m][n_row]; 
 	// printf("m %d", m );
+
 	// initialize below 
 	for(int i=0;i<m;i++){
+		int start_j = (rank*b);
 		for(int j=1;j<n_row-1;j++){
-			int j_ =(rank*b)+j;
-			A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);			
+			int j_ =start_j+j-1; // mapping local j to global j. 
+
+			// A[i][j] = i* cos(i) +(j_) * sin(j_) + sqrt(i+j_);		
+			//change cos to sin and sin to cos when using changing the order of m and n, 
+			// when dubugging using m =500, n = 2000, change use the above line. 	
+
+			A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);	
 		}
 	}
 	// do 10 iteration below
