@@ -5,6 +5,7 @@
 // #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <ctime>
 
 using namespace std;
 
@@ -66,7 +67,7 @@ double* serial(int m, int n){
 	double *sum=new double[2];
 	sum[0]=0.0;
 	sum[1]=0.0;
-	
+
 	for(int i=0; i<m; i++){
 		for(int j=0;j<n;j++){
 			sum[0] += A[i][j];
@@ -101,16 +102,6 @@ int main(int argc, char *argv[]){
 
 	int p =size; // num of procs. 
 
-	if(p==1){
-		// if only 1 proc, serial 
-
-		double *sum = serial(m,n);
-
-		printf("sum: %f\n", sum[0]);
-		printf("square_sum: %f\n", sum[1]);
-
-		return 0;
-	}
 
 	if(rank==0){
 		starttime = MPI_Wtime();
@@ -123,6 +114,23 @@ int main(int argc, char *argv[]){
 		b = floor(n*1.0/p);
 		// printf("b:%d\n", b);
 	}
+
+
+	if(p==1){
+		// if only 1 proc, serial 
+
+		double *sum = serial(m,n);
+
+		printf("sum: %f\n", sum[0]);
+		printf("square_sum: %f\n", sum[1]);
+
+		endtime = MPI_Wtime();
+		printf("time: %f\n", (endtime-starttime));
+
+		return 0;
+	}
+
+
 
 
 	int n_row = b+2; // append one row above and one row below the target matrix, ghost cells
@@ -168,7 +176,7 @@ int main(int argc, char *argv[]){
 		}  // two ghost cells
 
 		// printf("get prev tail");
-		cout<<"Get"<<endl;
+		// cout<<"Get"<<endl;
 		// cout<<"A"<<A[1][1];
 		// cout<<"prev:"<<self_prev[1]<<endl;
 
@@ -178,48 +186,48 @@ int main(int argc, char *argv[]){
 		int flag_tail = 0; 
 
 
-		cout<<"rank"<<rank<<endl;
-		cout<<"m"<<m<<endl;
+		// cout<<"rank"<<rank<<endl;
+		// cout<<"m"<<m<<endl;
 		// int count = sizeof(prev);
 		// cout<<"count"<<count<<endl;
 		if(rank ==0){
-			cout<<"sending "<<rank<<endl;
+			// cout<<"sending "<<rank<<endl;
 			//communication for proc 1
 			MPI_Send(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
-			cout<<"send"<<rank<<endl;
+			// cout<<"send"<<rank<<endl;
 
 			MPI_Recv(tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_tail =1; 
 			// printf("ihere, %d", rank);
-			cout<<"rev"<<rank<<endl;
+			// cout<<"rev"<<rank<<endl;
 
 
 		}else if(rank ==p-1){
-			cout<<"sending"<<rank<<endl;
+			// cout<<"sending"<<rank<<endl;
 
 			//communication for proc p
 			MPI_Send(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
-			cout<<"send"<<rank<<endl;
+			// cout<<"send"<<rank<<endl;
 			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_prev = 1; 
-			cout<<"zzz"<<endl;
+			// cout<<"zzz"<<endl;
 			// printf("ihere, %d", rank);
 
 		}else{
 			// comminication for intermediate processors
 			MPI_Send(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
 			MPI_Send(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
-			cout<<"send"<<rank<<endl;
+			// cout<<"send"<<rank<<endl;
 			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_prev=1;
 			MPI_Recv(tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_tail=1;
 
-			cout<<"comm"<<endl;
+			// cout<<"comm"<<endl;
 			// printf("ihere, %d", rank);
 		}
 		// cout<<"here"<<endl;
-		cout<<"iteration:"<<t<<endl;
+		// cout<<"iteration:"<<t<<endl;
 		// if prev || tail not null, then append them to A matrix
 		if(flag_prev==1){		// has value 
 			for(int num =0; num<m; num++){
@@ -270,9 +278,9 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	printf("rank: %d \n", rank);
-	printf("sum %f\n", sum[0]);
-	printf("square_sum: %f\n", sum[1]);
+	// printf("rank: %d \n", rank);
+	// printf("sum %f\n", sum[0]);
+	// printf("square_sum: %f\n", sum[1]);
 
 	double rev_sum[2];
 
