@@ -17,9 +17,9 @@ using namespace std;
 // 	return vec;
 // }
 
-int m=2000;
-int n=500;
-int p =2; // # of proc. 
+// int m=2000;
+// int n=500;
+// int p =2; // # of proc. 
 
 //function  f
 double f(double x){
@@ -41,15 +41,18 @@ int main(int argc, char** argv){
 	int rank;
 	int size;
 	int b;
+	int m =argv[0];
+	int n = argv[1];
 
 	// MPI_Abort(MPI_COMM_WORLD,11);
-
-
 
 	MPI_Init(&argc, &argv);
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+	int p =size; // num of procs. 
+
 	if(rank==0){
 		starttime = MPI_Wtime();
 	}
