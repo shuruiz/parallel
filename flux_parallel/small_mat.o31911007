@@ -1,0 +1,15 @@
+I ran on:
+nyx6157
+nyx6158
+nyx6178
+nyx6184
+--------------------------------------------------------------------------
+mpirun was unable to launch the specified application as it could not access
+or execute an executable:
+
+Executable: ./matrix
+Node: nyx6157
+
+while attempting to start process rank 0.
+--------------------------------------------------------------------------
+4 total processes failed to start
