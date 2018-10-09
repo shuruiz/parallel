@@ -15,4 +15,4 @@ cat $PBS_NODEFILE
 
 cd <flux_assign3>
 
-mpirun -np 2 ./matrix <arguments>
+mpirun -np 4 ./matrix 2000 500

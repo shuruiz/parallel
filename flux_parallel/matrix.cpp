@@ -33,16 +33,64 @@ double f(double x){
 	return y;
 }
 
+double* serial(int m, int n){
 
-int main(int argc, char** argv){
+
+	double A[m][n], A_0[m][n];
+	for(int i =0; i<m; i++){
+		for(int j=0; j<n; j++){
+			A[i][j] = i*sin(i) +j*cos(j) +sqrt(i+j);
+		}
+	}
+
+	for(int ite = 0; ite <10; ite++){
+		for(int i = 0; i<m; i++){ //copy A to A_0
+			for(int j=0; j<n; j++){
+				A_0[i][j] = A[i][j];
+			}
+		}
+
+		for(int i = 0; i<m; i++){ //copy A to A_0
+			for(int j=0; j<n; j++){
+				if(i==0 || j==0 || j==n-1 || i==m-1){
+					A[i][j] = A_0[i][j];
+				}else{
+					double z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1])+ f(A_0[i][j]))/5.0;
+					double _min = fmin(100, z);
+					A[i][j] = fmax(-100, _min);
+				}
+			}
+		}
+	}
+
+	double *sum=new double[2];
+	sum[0]=0.0;
+	sum[1]=0.0;
+	
+	for(int i=0; i<m; i++){
+		for(int j=0;j<n;j++){
+			sum[0] += A[i][j];
+			sum[1] += pow(A[i][j],2);
+		}
+	}
+
+	return sum;
+}
+
+int main(int argc, char *argv[]){
 	
 	double starttime;
 	double endtime;
 	int rank;
 	int size;
 	int b;
-	int m =argv[0];
-	int n = argv[1];
+	int m, n; 
+
+	cout<<"arg:"<<argv[2]<<endl;
+	m =atoi(argv[1]);
+	
+	n =atoi(argv[2]);
+
 
 	// MPI_Abort(MPI_COMM_WORLD,11);
 
@@ -52,6 +100,17 @@ int main(int argc, char** argv){
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	int p =size; // num of procs. 
+
+	if(p==1){
+		// if only 1 proc, serial 
+
+		double *sum = serial(m,n);
+
+		printf("sum: %f\n", sum[0]);
+		printf("square_sum: %f\n", sum[1]);
+
+		return 0;
+	}
 
 	if(rank==0){
 		starttime = MPI_Wtime();
@@ -239,7 +298,7 @@ int main(int argc, char** argv){
 	}
 
 	if(rank==0){
-		printf("SUM: %f\n", sum[0]);
+		printf("sum: %f\n", sum[0]);
 		printf("square_sum: %f\n", sum[1]);
 	}
 	
