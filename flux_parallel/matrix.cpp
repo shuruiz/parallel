@@ -87,7 +87,7 @@ int main(int argc, char *argv[]){
 	int b;
 	int m, n; 
 
-	cout<<"arg:"<<argv[2]<<endl;
+	// cout<<"arg:"<<argv[2]<<endl;
 	m =atoi(argv[1]);
 	
 	n =atoi(argv[2]);
@@ -116,19 +116,19 @@ int main(int argc, char *argv[]){
 	}
 
 
-	if(p==1){
-		// if only 1 proc, serial 
+	// if(p==1){
+	// 	// if only 1 proc, serial 
 
-		double *sum = serial(m,n);
+	// 	double *sum = serial(m,n);
 
-		printf("sum: %f\n", sum[0]);
-		printf("square_sum: %f\n", sum[1]);
+	// 	printf("sum: %f\n", sum[0]);
+	// 	printf("square_sum: %f\n", sum[1]);
 
-		endtime = MPI_Wtime();
-		printf("time: %f\n", (endtime-starttime));
+	// 	endtime = MPI_Wtime();
+	// 	printf("time: %f\n", (endtime-starttime));
 
-		return 0;
-	}
+	// 	return 0;
+	// }
 
 
 
