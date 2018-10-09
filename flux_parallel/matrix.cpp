@@ -78,7 +78,7 @@ double* serial(int m, int n){
 	return sum;
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char** argv){
 	
 	double starttime;
 	double endtime;
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]){
 
 	// 	endtime = MPI_Wtime();
 	// 	printf("time: %f\n", (endtime-starttime));
-
+		// MPI_Finalize();
 	// 	return 0;
 	// }
 
