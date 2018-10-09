@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -S /bin/sh
-#PBS -N small_mat
+#PBS -N small_36_mat
 #PBS -A eecs587f18_flux
 #PBS -l qos=flux
 #PBS -l procs=36,walltime=0:2:00

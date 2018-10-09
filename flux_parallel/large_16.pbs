@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -S /bin/sh
-#PBS -N small_16_mat
+#PBS -N large_16_mat
 #PBS -A eecs587f18_flux
 #PBS -l qos=flux
 #PBS -l procs=16,walltime=0:2:00
@@ -16,4 +16,4 @@ cat $PBS_NODEFILE
 
 cd /home/shuruiz/eecs_parallel
 
-mpirun -np 16 ./matrix 2000 500
+mpirun -np 16 ./matrix 1000 4000
