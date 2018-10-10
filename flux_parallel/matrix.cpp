@@ -99,6 +99,7 @@ int main(int argc, char** argv){
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Request req;
 
 	int p =size; // num of procs. 
 
@@ -193,7 +194,7 @@ int main(int argc, char** argv){
 		if(rank ==0){
 			// cout<<"sending "<<rank<<endl;
 			//communication for proc 1
-			MPI_Isend(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			MPI_Isend(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &req);
 			// cout<<"send"<<rank<<endl;
 
 			MPI_Recv(tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
@@ -206,7 +207,7 @@ int main(int argc, char** argv){
 			// cout<<"sending"<<rank<<endl;
 
 			//communication for proc p
-			MPI_Isend(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+			MPI_Isend(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD, &req);
 			// cout<<"send"<<rank<<endl;
 			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_prev = 1; 
@@ -215,8 +216,8 @@ int main(int argc, char** argv){
 
 		}else{
 			// comminication for intermediate processors
-			MPI_Isend(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
-			MPI_Isend(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			MPI_Isend(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD, &req);
+			MPI_Isend(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &req);
 			// cout<<"send"<<rank<<endl;
 			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_prev=1;
@@ -292,13 +293,13 @@ int main(int argc, char** argv){
 	
 
 	}else if(rank==p-1){
-		MPI_Isend(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Isend(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD, &req);
 
 	}else{
 		MPI_Recv(rev_sum, 2, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);	
 		sum[0] += rev_sum[0];
 		sum[1] += rev_sum[1];
-		MPI_Isend(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Isend(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD, &req);
 	}
 	if(rank==0){
 		endtime = MPI_Wtime();
