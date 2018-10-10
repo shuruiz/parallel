@@ -1,0 +1,19 @@
+#!/bin/sh
+#PBS -S /bin/sh
+#PBS -N large_36_mat
+#PBS -A eecs587f18_flux
+#PBS -l qos=flux
+#PBS -l procs=16,walltime=0:5:00
+#PBS -l pmem=100mb
+#PBS -q flux
+#PBS -m abe
+#PBS -j oe
+#PBS -V
+
+echo "I ran on:"
+cat $PBS_NODEFILE
+# Let PBS handle your output
+
+cd /home/shuruiz/eecs_parallel/parallel/flux_parallel
+
+mpirun -np 36 ./matrix 1000 4000
