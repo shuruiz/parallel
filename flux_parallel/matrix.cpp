@@ -114,18 +114,25 @@ int main(int argc, char** argv){
 	}
 
 	double batch = n*1.0/p; 
-	if(batch-floor(batch)>0.0){
+	// cout<<"batch"<<batch<<endl;
+	// cout<<"floor"<<floor(batch)<<endl;
+
+	if(n%p != 0){
 		if(rank==p-1){
-			b = n-floor(n*1.0/p)*rank;
+			b = n-ceil(n*1.0/p)*rank;
+
+
 			// printf("b:%d\n", b);
 		}else{
-			b = floor(n*1.0/p);
+			b = ceil(n*1.0/p);
 			// printf("b:%d\n", b);
 		}
 	}else{ // divisible 
-		b = floor(batch);
+		b = batch;
 	}	
 
+	// printf("rank: %f\n", rank);
+	// printf("b: %f\n", b);
 
 	if(p==1){
 		// if only 1 proc, serial 
@@ -156,7 +163,6 @@ int main(int argc, char** argv){
 			// A[i][j] = i* cos(i) +(j_) * sin(j_) + sqrt(i+j_);		
 			//change cos to sin and sin to cos when using changing the order of m and n, 
 			// when dubugging using m =500, n = 2000, change use the above line. 	
-
 			A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);	
 		}
 	}
@@ -184,13 +190,10 @@ int main(int argc, char** argv){
 		// cout<<"Get"<<endl;
 		// cout<<"A"<<A[1][1];
 		// cout<<"prev:"<<self_prev[1]<<endl;
-
 		double prev[m]; 
 		double tail[m];
 		int flag_prev = 0; // check if prev has value or not 
 		int flag_tail = 0; 
-
-
 		// cout<<"rank"<<rank<<endl;
 		// cout<<"m"<<m<<endl;
 		// int count = sizeof(prev);
