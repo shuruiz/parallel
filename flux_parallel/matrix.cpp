@@ -124,7 +124,7 @@ int main(int argc, char** argv){
 		b = batch;
 	}	
 
-	cout<<"rank:" <<rank << "b:" <<b;
+	
 
 	// printf("rank: %d\n", rank);
 	// printf("b: %d\n", b);
