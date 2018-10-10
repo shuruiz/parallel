@@ -149,7 +149,7 @@ int main(int argc, char** argv){
 	// initialize below 
 	for(int i=0;i<m;i++){
 		int start_j = (rank* ceil(n*1.0/p));
-		for(int j=1;j<n_row-2;j++){
+		for(int j=1;j<n_row-1;j++){
 			int j_ =start_j+j-1; // mapping local j to global j. 
 
 			// A[i][j] = i* cos(i) +(j_) * sin(j_) + sqrt(i+j_);		
@@ -157,9 +157,7 @@ int main(int argc, char** argv){
 			// when dubugging using m =500, n = 2000, change use the above line. 	
 			A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);	
 		}
-	}
-
-	
+	}	
 
 	if(rank==0){
 		starttime = MPI_Wtime();

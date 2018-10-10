@@ -3,7 +3,7 @@
 #PBS -N small_16_mat
 #PBS -A eecs587f18_flux
 #PBS -l qos=flux
-#PBS -l procs=16,walltime=0:1:00
+#PBS -l procs=16,walltime=0:2:00
 #PBS -l pmem=100mb
 #PBS -q flux
 #PBS -m abe
