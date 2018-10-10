@@ -115,6 +115,7 @@ int main(int argc, char** argv){
 	if(n%p !=0){
 		if(rank==p-1){
 			b = n-ceil(n*1.0/p)*rank;
+			printf("here");
 			// printf("b:%d\n", b);
 		}else{
 			b = ceil(n*1.0/p);
