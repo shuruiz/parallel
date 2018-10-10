@@ -116,19 +116,19 @@ int main(int argc, char** argv){
 	}
 
 
-	// if(p==1){
-	// 	// if only 1 proc, serial 
+	if(p==1){
+		// if only 1 proc, serial 
 
-	// 	double *sum = serial(m,n);
+		double *sum = serial(m,n);
 
-	// 	printf("sum: %f\n", sum[0]);
-	// 	printf("square_sum: %f\n", sum[1]);
+		printf("sum: %f\n", sum[0]);
+		printf("square_sum: %f\n", sum[1]);
 
-	// 	endtime = MPI_Wtime();
-	// 	printf("time: %f\n", (endtime-starttime));
-		// MPI_Finalize();
-	// 	return 0;
-	// }
+		endtime = MPI_Wtime();
+		printf("time: %f\n", (endtime-starttime));
+		MPI_Finalize();
+		return 0;
+	}
 
 
 
@@ -148,11 +148,11 @@ int main(int argc, char** argv){
 		for(int j=1;j<n_row-1;j++){
 			int j_ =start_j+j-1; // mapping local j to global j. 
 
-			A[i][j] = i* cos(i) +(j_) * sin(j_) + sqrt(i+j_);		
+			// A[i][j] = i* cos(i) +(j_) * sin(j_) + sqrt(i+j_);		
 			//change cos to sin and sin to cos when using changing the order of m and n, 
 			// when dubugging using m =500, n = 2000, change use the above line. 	
 
-			// A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);	
+			A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);	
 		}
 	}
 	// do 10 iteration below
@@ -193,7 +193,7 @@ int main(int argc, char** argv){
 		if(rank ==0){
 			// cout<<"sending "<<rank<<endl;
 			//communication for proc 1
-			MPI_Send(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			MPI_Isend(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
 			// cout<<"send"<<rank<<endl;
 
 			MPI_Recv(tail, m, MPI_DOUBLE, rank+1, 1, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
@@ -206,7 +206,7 @@ int main(int argc, char** argv){
 			// cout<<"sending"<<rank<<endl;
 
 			//communication for proc p
-			MPI_Send(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+			MPI_Isend(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
 			// cout<<"send"<<rank<<endl;
 			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_prev = 1; 
@@ -215,8 +215,8 @@ int main(int argc, char** argv){
 
 		}else{
 			// comminication for intermediate processors
-			MPI_Send(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
-			MPI_Send(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+			MPI_Isend(self_prev, m, MPI_DOUBLE, rank-1, 1, MPI_COMM_WORLD);
+			MPI_Isend(self_tail, m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
 			// cout<<"send"<<rank<<endl;
 			MPI_Recv(prev, m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			flag_prev=1;
@@ -292,13 +292,13 @@ int main(int argc, char** argv){
 	
 
 	}else if(rank==p-1){
-		MPI_Send(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Isend(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 
 	}else{
 		MPI_Recv(rev_sum, 2, MPI_DOUBLE, rank+1, 2, MPI_COMM_WORLD,MPI_STATUS_IGNORE);	
 		sum[0] += rev_sum[0];
 		sum[1] += rev_sum[1];
-		MPI_Send(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
+		MPI_Isend(sum, 2, MPI_DOUBLE, rank-1, 2, MPI_COMM_WORLD);
 	}
 	if(rank==0){
 		endtime = MPI_Wtime();

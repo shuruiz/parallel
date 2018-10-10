@@ -16,4 +16,4 @@ cat $PBS_NODEFILE
 
 cd /home/shuruiz/eecs_parallel/parallel/flux_parallel
 
-mpirun -np 4 ./matrix 500 2000
+mpirun -np 4 ./matrix 2000 500
