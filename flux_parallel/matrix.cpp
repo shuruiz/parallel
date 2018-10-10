@@ -101,17 +101,12 @@ int main(int argc, char** argv){
 	// cout<<"here1"<<endl;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Barrier(MPI_COMM_WORLD);
+	
 	MPI_Request req;
 
 	// cout<<"here2"<<endl;
 
 	int p =size; // num of procs. 
-
-
-	if(rank==0){
-		starttime = MPI_Wtime();
-	}else{}
 
 	double batch = n*1.0/p; 
 	// cout<<"batch"<<batch<<endl;
@@ -120,8 +115,6 @@ int main(int argc, char** argv){
 	if(n%p !=0){
 		if(rank==p-1){
 			b = n-ceil(n*1.0/p)*rank;
-
-
 			// printf("b:%d\n", b);
 		}else{
 			b = ceil(n*1.0/p);
@@ -131,9 +124,8 @@ int main(int argc, char** argv){
 		b = batch;
 	}	
 
-	printf("rank: %f\n", rank);
-	printf("b: %f\n", b);
-
+	// printf("rank: %d\n", rank);
+	// printf("b: %d\n", b);
 	if(p==1){
 		// if only 1 proc, serial 
 		// cout<<"here"<<endl;
@@ -156,7 +148,7 @@ int main(int argc, char** argv){
 
 	// initialize below 
 	for(int i=0;i<m;i++){
-		int start_j = (rank*b);
+		int start_j = (rank* ceil(n*1.0/p) );
 		for(int j=1;j<n_row-1;j++){
 			int j_ =start_j+j-1; // mapping local j to global j. 
 
@@ -166,6 +158,13 @@ int main(int argc, char** argv){
 			A[i][j] = i* sin(i) +(j_) * cos(j_) + sqrt(i+j_);	
 		}
 	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if(rank==0){
+		starttime = MPI_Wtime();
+	}else{}
+
 	// do 10 iteration below
 
 	for(int t=0; t<10; t++ ){ // 10 iteration below
