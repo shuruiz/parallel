@@ -114,9 +114,9 @@ int main(int argc, char** argv){
 	}
 
 	double batch = n*1.0/p; 
-	if(batch-floor(batch)>0){
+	if(batch-floor(batch)>0.0){
 		if(rank==p-1){
-			b = n-floor(n*1.0/p)*(rank+1);
+			b = n-floor(n*1.0/p)*rank;
 			// printf("b:%d\n", b);
 		}else{
 			b = floor(n*1.0/p);
