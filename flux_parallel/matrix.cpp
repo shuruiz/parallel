@@ -117,7 +117,7 @@ int main(int argc, char** argv){
 	// cout<<"batch"<<batch<<endl;
 	// cout<<"floor"<<floor(batch)<<endl;
 
-	if(n%p != 0){
+	if(n%p !=0){
 		if(rank==p-1){
 			b = n-ceil(n*1.0/p)*rank;
 
@@ -131,8 +131,8 @@ int main(int argc, char** argv){
 		b = batch;
 	}	
 
-	// printf("rank: %f\n", rank);
-	// printf("b: %f\n", b);
+	printf("rank: %f\n", rank);
+	printf("b: %f\n", b);
 
 	if(p==1){
 		// if only 1 proc, serial 
