@@ -97,7 +97,7 @@ int main(int argc, char** argv){
 	// MPI_Abort(MPI_COMM_WORLD,11);
 
 	MPI_Init(&argc, &argv);
-	
+	MPI_Barrier(MPI_COMM_WORLD);
 	// cout<<"here1"<<endl;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -148,8 +148,8 @@ int main(int argc, char** argv){
 
 	// initialize below 
 	for(int i=0;i<m;i++){
-		int start_j = (rank* ceil(n*1.0/p) );
-		for(int j=1;j<n_row-1;j++){
+		int start_j = (rank* ceil(n*1.0/p));
+		for(int j=1;j<n_row-2;j++){
 			int j_ =start_j+j-1; // mapping local j to global j. 
 
 			// A[i][j] = i* cos(i) +(j_) * sin(j_) + sqrt(i+j_);		
@@ -159,7 +159,7 @@ int main(int argc, char** argv){
 		}
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	
 
 	if(rank==0){
 		starttime = MPI_Wtime();
