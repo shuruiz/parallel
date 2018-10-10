@@ -56,7 +56,7 @@ double* serial(int m, int n){
 				if(i==0 || j==0 || j==n-1 || i==m-1){
 					A[i][j] = A_0[i][j];
 				}else{
-					double z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1])+ f(A_0[i][j]))/5.0;
+					double z = (f(A_0[i-1][j])+f(A_0[i+1][j])+f(A_0[i][j-1])+f(A_0[i][j+1])+ f(A_0[i][j]))/5.0;
 					double _min = fmin(100, z);
 					A[i][j] = fmax(-100, _min);
 				}
@@ -67,6 +67,7 @@ double* serial(int m, int n){
 	double *sum=new double[2];
 	sum[0]=0.0;
 	sum[1]=0.0;
+
 
 	for(int i=0; i<m; i++){
 		for(int j=0;j<n;j++){
@@ -97,9 +98,13 @@ int main(int argc, char** argv){
 
 	MPI_Init(&argc, &argv);
 	MPI_Barrier(MPI_COMM_WORLD);
+	// cout<<"here1"<<endl;
+
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Request req;
+
+	// cout<<"here2"<<endl;
 
 	int p =size; // num of procs. 
 
@@ -108,18 +113,23 @@ int main(int argc, char** argv){
 		starttime = MPI_Wtime();
 	}
 
-	if(rank==p-1){
-		b = n-floor(n*1.0/p)*rank;
-		// printf("b:%d\n", b);
-	}else{
-		b = floor(n*1.0/p);
-		// printf("b:%d\n", b);
-	}
+	double batch = n*1.0/p; 
+	if(batch-floor(batch)>0){
+		if(rank==p-1){
+			b = n-floor(n*1.0/p)*(rank+1);
+			// printf("b:%d\n", b);
+		}else{
+			b = floor(n*1.0/p);
+			// printf("b:%d\n", b);
+		}
+	}else{ // divisible 
+		b = floor(batch);
+	}	
 
 
 	if(p==1){
 		// if only 1 proc, serial 
-
+		// cout<<"here"<<endl;
 		double *sum = serial(m,n);
 
 		printf("sum: %f\n", sum[0]);
@@ -131,13 +141,7 @@ int main(int argc, char** argv){
 		return 0;
 	}
 
-
-
-
 	int n_row = b+2; // append one row above and one row below the target matrix, ghost cells
-
-
-
 	// printf("rows:%d\n", n_row);
 	// std::vector<double> v[m][n_row];
 	double A[m][n_row]; 
