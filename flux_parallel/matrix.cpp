@@ -7,6 +7,8 @@
 #include <iostream>
 #include <ctime>
 
+// the performance & efficiency is not the best. check the report. ISA considerated. 
+
 using namespace std;
 
 // template<typename T>
