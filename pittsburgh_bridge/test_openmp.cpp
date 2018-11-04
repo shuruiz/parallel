@@ -17,7 +17,7 @@
      {
          if( std::abs(z) >= 2.0) break;
          z = z*z + c;
-     }
+     }g
      return n;
  }
  int main()
