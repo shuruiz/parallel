@@ -1,6 +1,8 @@
 //
 //  shuruiz
-//
+// compile with icpc of clang/openmp/g++ openmp
+//e.g.
+// icpc -o max -fopenmp main.cpp
 
 #include<iostream>
 #include<float.h>
