@@ -1,0 +1,5 @@
++ export OMP_NUM_THREADS=4
++ OMP_NUM_THREADS=4
++ ./max
+The runtime is: 103.961
+The final result is: 3.33333
