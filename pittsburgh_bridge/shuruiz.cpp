@@ -84,8 +84,10 @@ int main(int argc, char** argv)
     }
     double endtime=omp_get_wtime();
     double total_time=endtime-starttime;
-    cout<<"The runtime is: "<<total_time<<endl;
-    cout<<"The final result is: "<<M<<endl;
+    printf("total runtime is %f", total_time );
+    printf("final result is %f", M);
+    // cout<<"The runtime is: "<<total_time<<endl;
+    // cout<<"The final result is: "<<M<<endl;
     return 0;
 }
 
