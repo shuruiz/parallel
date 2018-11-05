@@ -15,7 +15,7 @@ double epsilon=pow(10, -6);
 int s=12;
 double fx(double x);
 double M= -DBL_MAX; // initialize M to the -max_double, infinite small
-int activeThread=0;
+int _current=0; // threads
 
 omp_lock_t maxLock;
 omp_lock_t stackLock;
@@ -35,22 +35,17 @@ int main(int argc, char** argv)
             omp_set_lock(&stackLock);
             // elimiate cout command to shorten the running time.
             // cout<<"on thread: "<<omp_get_thread_num()<<endl;
-            if(_stack.empty())
-            {
-                if(activeThread==0)
-                {
-                    //master thread
+            if(_stack.empty()){ // assign work
+                if(_current==0){
                     omp_unset_lock(&stackLock);
-                    break;
-                }
+                    break;}
                 else
                     omp_unset_lock(&stackLock);
             }
-            else
-            {
-                activeThread++;
-                double c=_stack.top().first;
-                double d=_stack.top().second;
+            else{
+                _current++;
+                double c=_stack.top().first; //get left of the interval
+                double d=_stack.top().second; //get right of the interval
       
                 _stack.pop();
                 omp_unset_lock(&stackLock);
@@ -72,7 +67,7 @@ int main(int argc, char** argv)
                     // breadth-first generating intervals
                     _stack.push(make_pair(c, (c+d)/2));
                     _stack.push(make_pair((c+d)/2, d));
-                    activeThread--;
+                    _current--;
                     omp_unset_lock(&stackLock);
                 }
                 
@@ -80,7 +75,7 @@ int main(int argc, char** argv)
                 //get rid of this interval, no need to compute because max interval [a,b] < M+epsilon
                 {
                     omp_set_lock(&stackLock);
-                    activeThread--;
+                    _current--;
                     omp_unset_lock(&stackLock);
                 }
                 omp_unset_lock(&maxLock);
@@ -88,16 +83,14 @@ int main(int argc, char** argv)
         }
     }
     double endtime=omp_get_wtime();
-    
     double total_time=endtime-starttime;
     cout<<"The runtime is: "<<total_time<<endl;
     cout<<"The final result is: "<<M<<endl;
     return 0;
 }
 
-//f(x) below, double precision
-double fx(double x)
-{
+//f(x) sum below, double precision
+double fx(double x){
     double result=0;
     for(int i=100; i>=1; i--)
     {
