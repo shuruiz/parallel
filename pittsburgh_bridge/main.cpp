@@ -33,7 +33,8 @@ int main(int argc, char** argv)
         while(true)
         {
             omp_set_lock(&stackLock);
-            cout<<"on thread: "<<omp_get_thread_num()<<endl;
+            // elimiate cout command to shorten the running time.
+            // cout<<"on thread: "<<omp_get_thread_num()<<endl;
             if(_stack.empty())
             {
                 if(activeThread==0)
