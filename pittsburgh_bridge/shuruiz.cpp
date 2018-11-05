@@ -5,6 +5,7 @@
 #include<iostream>
 #include<float.h>
 #include<cmath>
+#include<stdio.h>
 #include<stack>
 #include<utility>
 #include<omp.h>
