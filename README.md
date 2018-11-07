@@ -11,15 +11,28 @@ https://www.psc.edu/bridges
 Parallel computing compilers used for tasks:
 
 Message Passing Interface (MPI):
+
+
 https://computing.llnl.gov/tutorials/mpi/
 
 OpenMPI:
+
+
 https://www.open-mpi.org/
 
-OpenMP:
-https://www.openmp.org/ 
 
-GCC: 
+GCC with OpenMP: 
+
+
 https://gcc.gnu.org/ 
+https://www.openmp.org/ 
+https://gcc.gnu.org/onlinedocs/libgomp/Enabling-OpenMP.html
+
+
+Intel icpc:
+
+
+https://software.intel.com/en-us/node/522357 
+
 
 Many thanks to Prof. Quentin Stout for computing resources allocation and for providing lectures (2018 fall EECS 587 parallel computing). 
