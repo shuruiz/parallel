@@ -25,7 +25,11 @@ GCC with OpenMP:
 
 
 https://gcc.gnu.org/ 
+
+
 https://www.openmp.org/ 
+
+
 https://gcc.gnu.org/onlinedocs/libgomp/Enabling-OpenMP.html
 
 
