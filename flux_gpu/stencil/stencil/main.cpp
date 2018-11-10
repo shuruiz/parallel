@@ -12,18 +12,30 @@
 #include "stdio.h"
 #include <vector>
 #include "cmath"
+#include <float.h>
 
-#define N (1024*1024)
 #define THREADS_PER_BLOCK 512
 
 using namespace std;
+void calc(int i, int j, int n, double **arr){
+    if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
+    }
+    else{
+        //assign secondMin to A[i][j]
+        double first,second;
+        first = second = DBL_MAX;
+    }
+    
+}
 
-__global__ void stencil_2d(double *a, double *b, double *c, int n) {
-    int index_i = floor(threadIdx.x + blockIdx.x * THREADS_PER_BLOCK / (N*1.0));
-    int index_j = floor(threadIdx.x + blockIdx.x * THREADS_PER_BLOCK % N);
+__global__ void stencil_2d(double **arr, int n) {
+    int index_i = floor(threadIdx.x + blockIdx.x * THREADS_PER_BLOCK / (n*1.0));
+    int index_j = floor(threadIdx.x + blockIdx.x * THREADS_PER_BLOCK % n);
+    calc(index_i, index_j, n, arr);
     
     
 }
+
 
 
 int main(int argc, char** argv) {
@@ -36,22 +48,23 @@ int main(int argc, char** argv) {
             array[i][j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
-    
+    // variables
     double *a, *b, *c;
     double *d_a, *d_b, *d_c;
+    int N  = n*n;
     int size = N * sizeof(double);
     
     // allocate memory on device
     cudaMalloc((void **)&d_a, size);
-    cudaMalloc((void **)&d_a, size);
-    cudaMalloc((void **)&d_a, size);
+    cudaMalloc((void **)&d_b, size);
+    cudaMalloc((void **)&d_c, size);
     
     // Copy inputs to device
     cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
     
     //launch kernal on device
-    stencil_1d<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_a, d_b, d_c);
+    stencil_2d<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_a, d_b, d_c);
     
     // Copy result back to host
     cudaMemcpy(c, d_c, size, cudaMemcpyDeviceToHost);
