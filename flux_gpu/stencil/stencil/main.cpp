@@ -27,20 +27,19 @@ __global__ void stencil_2d(double *a, double *b, double *c, int n) {
 
 
 int main(int argc, char** argv) {
-    std::vector<std::vector<double> > array;
     // initialize below
     int n = *argv[1];
-    double array(n,n);
-    
-    for(int i =0; i<n;i++){
-        for(int j =0; j<n; j++){
+    std::vector<double> v1(n);
+    std::vector<std::vector<double> > array(n,v1);
+    for(int i =0; i<array.size();i++){
+        for(int j =0; j<array[i].size(); j++){
             array[i][j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
     
     double *a, *b, *c;
     double *d_a, *d_b, *d_c;
-    int size = N * sizeof(doubleg);
+    int size = N * sizeof(double);
     
     // allocate memory on device
     cudaMalloc((void **)&d_a, size);
@@ -51,6 +50,7 @@ int main(int argc, char** argv) {
     cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
     
+    //launch kernal on device
     stencil_1d<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_a, d_b, d_c);
     
     // Copy result back to host
