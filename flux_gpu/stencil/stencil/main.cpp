@@ -9,14 +9,19 @@
 
 #include <iostream>
 #include <algorithm>
+#include "stdio.h"
 #include <vector>
 #include "cmath"
-using namespace std;
+
 #define N (1024*1024)
 #define THREADS_PER_BLOCK 512
 
+using namespace std;
 
-__global__ void stencil_1d(double *a, double *b, double *c, int n) {
+__global__ void stencil_2d(double *a, double *b, double *c, int n) {
+    int index_i = floor(threadIdx.x + blockIdx.x * THREADS_PER_BLOCK / (N*1.0));
+    int index_j = floor(threadIdx.x + blockIdx.x * THREADS_PER_BLOCK % N);
+    
     
 }
 
@@ -35,7 +40,7 @@ int main(int argc, char** argv) {
     
     double *a, *b, *c;
     double *d_a, *d_b, *d_c;
-    int size = N * sizeof(int);
+    int size = N * sizeof(doubleg);
     
     // allocate memory on device
     cudaMalloc((void **)&d_a, size);
