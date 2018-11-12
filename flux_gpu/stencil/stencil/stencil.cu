@@ -40,7 +40,7 @@ __global__ void calc(int n, double *A){
     //update A below
     double first, second;
     first = second = DBL_MAX;
-    int i = floor(gindex / n);
+    int i = floor((double)gindex / n);
     int j = gindex % n;
     if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
     }
