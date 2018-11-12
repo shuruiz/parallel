@@ -22,8 +22,7 @@ using namespace std;
 
 
 //child node
-__global__
-void calc(int n, double *A){
+__global__ void calc(int n, double *A){
     __shared__ double tmp[blockDim.x+2*n]; //radius =n
     int gindex = threadId.x + blockIdx.x * blockDim.x;
     int lindex = threadId.x + n ;
@@ -59,8 +58,7 @@ void calc(int n, double *A){
 }
 
 //parent node
-__global__
-void stencil(double *dA,int n, int t){
+__global__ void stencil(double *dA,int n, int t){
     for(int episode = 0; episode <t; episode++){
         int N = n*n;
         calc<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(n, dA);
