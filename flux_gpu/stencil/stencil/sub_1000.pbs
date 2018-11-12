@@ -4,7 +4,7 @@
 #PBS -A eecs587f18_fluxg
 #PBS -l qos=fluxg
 #PBS -l pmem=100mb
-#PBS -l nodes=1:gpus=1,mem=2gb,walltime=00:05:00
+#PBS -l nodes=1:gpus=1,mem=200mb,walltime=00:05:00
 #PBS -q fluxg
 #PBS -m abe
 #PBS -j oe
