@@ -67,8 +67,8 @@ __global__ void calc(int n, double *A){
 __global__ void stencil(double *dA,int n){
 
     calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA); 
-    printf("exec. in parent node\n");
     __syncthreads();
+    printf("exec. in parent node\n");
 }
 
 double verisum_all(int n, double *A){
