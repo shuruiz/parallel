@@ -22,6 +22,8 @@
 
 using namespace std;
 
+
+//child node
 __global__
 void calc(int n, double *A){
     
@@ -45,7 +47,7 @@ void calc(int n, double *A){
     if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
         A[i*n+j] = prev_A[i*n+j];
     }
-    
+    //find secondMin below
     else{
         double candidates[] = {tmp[(i+1)*n+ (j+1)], tmp[(i+1)*n+(j-1)],tmp[(i-1)*n +(j+1)],tmp[(i-1)*n + (j-1)]};
         for(int k =0; k<4; k++){
@@ -60,16 +62,13 @@ void calc(int n, double *A){
     }
 }
 
-__global__
-void stencil(double *A, int n) {
-    calc<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(n, A);
-}
 
-void compute(double *dA,int n, int t){
-    
+//parent node
+__global__
+void stencil(double *dA,int n, int t){
     for(int episode = 0; episode <t; episode++){
-//        int N = n*n;
-        stencil<<<1,PARENT_THREADS>>>(dA,  n);
+        int N = n*n;
+        calc<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(n, dA);
         __syncthreads();
     }
 }
@@ -112,16 +111,20 @@ int main(int argc, char** argv) {
     double *dA;
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
-    
-    
+
     // Copy inputs to device
     cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
     //launch kernal on device
     int t  = 10;
-    compute(dA, n, t);
+    
+    stencil<<<1, PARENT_THREADS>>>(dA, n, t);
     cudaDeviceSynchronize();
+    
+    
     // Copy result back to host
     cudaMemcpy(array, dA, size, cudaMemcpyDeviceToHost);
+    
+    //verify results
     double verisum = verisum_all(n, array);
     double half_value = value_half(n, array);
     double spec  = value_37_47(n, array);
