@@ -28,7 +28,7 @@ __global__ void calc(int n, double *A){
     int lindex = threadId.x + n ;
     //read input elements into shared memory
     tmp[lindx] = A[gindex];
-    if(threadId.x < n){
+    if(threadIdx.x < n){
         tmp[lindex-n] = A[gindex -n];
         //block size = threads per block
         tmp[lindex + THREADS_PER_BLOCK ] = A [gindex+ THREADS_PER_BLOCK];
