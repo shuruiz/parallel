@@ -23,7 +23,7 @@ using namespace std;
 
 //child node
 __global__ void calc(int n, double *A){
-    __shared__ double tmp[blockDim.x+2*n]; //radius =n
+    __shared__ double tmp[THREADS_PER_BLOCK+2*n]; //radius =n
     int gindex = threadIdx.x + blockIdx.x * blockDim.x;
     int lindex = threadIdx.x + n ;
     //read input elements into shared memory
