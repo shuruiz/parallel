@@ -127,9 +127,9 @@ int main(int argc, char** argv) {
     double spec  = value_37_47(n, array);
     
     //print result
-    printf("verisum all %f/n", verisum);
-    printf("verification n/2 %f/n", half_value);
-    printf("verification A[37][47] %f/n", spec);
+    printf("verisum all %f\n", verisum);
+    printf("verification n/2 %f\n", half_value);
+    printf("verification A[37][47] %f\n", spec);
     
     //free memory
     free(array);
