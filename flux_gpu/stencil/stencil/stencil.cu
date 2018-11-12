@@ -64,12 +64,12 @@ __global__ void calc(int n, double *A){
 }
 
 //parent node
-__global__ void stencil(double *dA,int n){
+// __global__ void stencil(double *dA,int n){
 
-    calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA); 
-    __syncthreads();
-    printf("exec. in parent node\n");
-}
+//     calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA); 
+//     __syncthreads();
+//     printf("exec. in parent node\n");
+// }
 
 double verisum_all(int n, double *A){
     double sum=0.0;
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     
     for(int episode =0; episode<t; episode++){
         printf("loop %d\n", episode );
-        stencil<<<1, PARENT_THREADS>>>(dA, n);
+        calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA);
         cudaDeviceSynchronize();
     }
     
