@@ -106,6 +106,20 @@ int main(int argc, char** argv) {
             array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
+
+    //verify initialization results
+    double verisum_1 = verisum_all(n, array);
+    double half_value_1 = value_half(n, array);
+    double spec_1  = value_37_47(n, array);
+    
+    //print result
+    printf("init verisum all %f\n", verisum_1);
+    printf("init verification n/2 %f\n", half_value_1);
+    printf("init verification A[37][47] %f\n", spec_1);
+
+
+
+
     double *dA;
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
