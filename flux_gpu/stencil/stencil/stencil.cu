@@ -50,17 +50,17 @@ __global__ void calc(int n, double *A){
     else{
         double candidates[] = {tmp[(i+1)*n+ (j+1)], tmp[(i+1)*n+(j-1)],tmp[(i-1)*n +(j+1)],tmp[(i-1)*n + (j-1)]};
         for(int k =0; k<4; k++){
-            if(candidates[k]<first){
+            if(candidates[k]<=first){
                 second = first;
                 first = candidates[k];
             }
-            else if (candidates[k] < second && candidates[k] != first){
+            else if (candidates[k] <= second && candidates[k] != first){
                 second = candidates[k];}
         }
         A[i*n+j] += second;
     }
 
-    printf("exec. in child node\n");
+    printf("exec. in child node, block%d, threads%d\n", blockIdx.x, threadIdx.x);
 }
 
 //parent node
