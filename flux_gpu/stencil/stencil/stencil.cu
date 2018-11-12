@@ -64,17 +64,12 @@ __global__ void calc(int n, double *A){
 }
 
 //parent node
-__global__ void stencil(double *dA,int n, int t){
-    for(int episode = 0; episode <t; episode++){
-        //int N = n*n;
-        
-        calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA); 
-        // __syncthreads();
-        
-        cudaDeviceSynchronize();
-        printf("exec. in parent node, loop%d\n", episode);
-    }
+__global__ void stencil(double *dA,int n){
+
+    calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA); 
     __syncthreads();
+    printf("exec. in parent node\n");
+
 }
 
 double verisum_all(int n, double *A){
@@ -138,8 +133,12 @@ int main(int argc, char** argv) {
     //launch kernal on device
     int t  = 10;
     
-    stencil<<<1, PARENT_THREADS>>>(dA, n, t);
-    cudaDeviceSynchronize();
+    for(int episode =0; episode<t; episode++){
+        printf("loop %d\n", episode );
+        stencil<<<1, PARENT_THREADS>>>(dA, n);
+        cudaDeviceSynchronize();
+    }
+    
     
     // Copy result back to host
     cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
