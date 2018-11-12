@@ -17,31 +17,61 @@
 #include "cuda.h"
 
 #define THREADS_PER_BLOCK 256
+#define PARENT_THREADS 128
+#define N_BLOCKS 16
 
 using namespace std;
 
-__global__
-void calc(int i, int j, int n, double *A, double *prev_A){
-    double first,second;
+__global__ void calc(int n, int radius, double *A, double *prev_A){
+    
+    __shared__ double tmp[blockDim.x+2*n]; //radius =n
+    int gindex = threadId.x + blockIdx.x *blockDim.x;
+    int lindex = threadId.x + n ;
+    //read input elements into shared memory
+    tmp[lindx] = A[gindex];
+    if(threadId.x < n){
+        tmp[lindex-n] = A[gindex -n];
+        //block size = threads per block
+        tmp[lindex + THREADS_PER_BLOCK ] = A [gindex+ THREADS_PER_BLOCK];
+    }
+    __syncthreads();
+    
+    //update A below
+    double first, second;
     first = second = DBL_MAX;
     if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
         A[i*n+j] = prev_A[i*n+j];
     }
     else{
-        //assign secondMin to A[i][j]
-        double tmp[4] = {arr[i+1][j+1], arr[i+1][j-1],arr[i-1][j+1],arr[i-1][j-1]};
+        double candidates[] = {tmp[(i+1)*n+ (j+1)], A[(i+1)*n+(j-1)],A[(i-1)*n +(j+1)],A[(i-1)*n + (j-1)]};
         for(int k =0; k<4; k++){
             if(tmp[k]<first){
                 second = first;
-                first = tmp[k];
+                first = candidates[k];
             }
-            else if (tmp[k] < second && tmp[k] != first){
+            else if (candidates[k] < second && candidates[k] != first){
                 second = tmp[k];}
         }
+        A[i*n+j] += second;
     }
-    arr[i][j] += second;
+    prev_dA = A
 }
 
+
+
+
+__global__ void stencil(double *A, double *prev_dA, int n) {
+    calc<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(n, A, pred_dA);
+}
+
+void compute(double *dA, double *prev_dA, int n, int t){
+    
+    for(int episode = 0; episode <t; episode++){
+//        int N = n*n;
+        stencil<<<1,PARENT_THREADS>>>(dA, prev_dA, n);
+        
+    }
+}
 
 double verisum_all(int n, double *A){
     double sum=0.0;
@@ -62,38 +92,6 @@ double value_37_47(int n, double *A){
     return A[37*n + 47];
 }
 
-__global__
-void stencil(double *A, double *prev_dA, int n) {
-    int index = threadIdx.x + blockIdx.x * THREADS_PER_BLOCK;
-    int i = floor(index / n);
-    int j = index % n;
-    
-    double first, second;
-    first = second = DBL_MAX;
-    if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
-        A[i*n+j] = prev_A[i*n+j];
-    }
-    else{
-        double tmp[] = {A[(i+1)*n+ (j+1)], A[(i+1)*n+(j-1)],A[(i-1)*n +(j+1)],A[(i-1)*n + (j-1)]};
-        for(int k =0; k<4; k++){
-            if(tmp[k]<first){
-                second = first;
-                first = tmp[k];
-            }
-            else if (tmp[k] < second && tmp[k] != first){
-                second = tmp[k];}
-        }
-        A[i*n+j] += second;
-    }
-    prev_dA = A
-}
-
-void compute(double *dA, double *prev_dA, int n, int t){
-    for(int episode = 0; episode <t; episode++){
-        int N = n*n;
-        stencil<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(dA, prev_dA, n);
-    }
-}
 
 int main(int argc, char** argv) {
     // initialize below
@@ -131,6 +129,7 @@ int main(int argc, char** argv) {
 //    stencil<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_a,d_b, d_c);
     int t  = 10;
     compute(dA, prev_dA, n, t)
+    cudaDeviceSynchronize();
     
     // Copy result back to host
     cudaMemcpy(array, dA, size, cudaMemcpyDeviceToHost);
