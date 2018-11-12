@@ -22,7 +22,8 @@
 
 using namespace std;
 
-__global__ void calc(int n, int radius, double *A, double *prev_A){
+__global__
+void calc(int n, double *A){
     
     __shared__ double tmp[blockDim.x+2*n]; //radius =n
     int gindex = threadId.x + blockIdx.x *blockDim.x;
@@ -39,37 +40,37 @@ __global__ void calc(int n, int radius, double *A, double *prev_A){
     //update A below
     double first, second;
     first = second = DBL_MAX;
+    int i = floor(gindex / n);
+    int j = gindex % n;
     if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
         A[i*n+j] = prev_A[i*n+j];
     }
+    
     else{
-        double candidates[] = {tmp[(i+1)*n+ (j+1)], A[(i+1)*n+(j-1)],A[(i-1)*n +(j+1)],A[(i-1)*n + (j-1)]};
+        double candidates[] = {tmp[(i+1)*n+ (j+1)], tmp[(i+1)*n+(j-1)],tmp[(i-1)*n +(j+1)],tmp[(i-1)*n + (j-1)]};
         for(int k =0; k<4; k++){
-            if(tmp[k]<first){
+            if(candidates[k]<first){
                 second = first;
                 first = candidates[k];
             }
             else if (candidates[k] < second && candidates[k] != first){
-                second = tmp[k];}
+                second = candidates[k];}
         }
         A[i*n+j] += second;
     }
-    prev_dA = A
 }
 
-
-
-
-__global__ void stencil(double *A, double *prev_dA, int n) {
-    calc<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(n, A, pred_dA);
+__global__
+void stencil(double *A, int n) {
+    calc<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(n, A);
 }
 
-void compute(double *dA, double *prev_dA, int n, int t){
+void compute(double *dA,int n, int t){
     
     for(int episode = 0; episode <t; episode++){
 //        int N = n*n;
-        stencil<<<1,PARENT_THREADS>>>(dA, prev_dA, n);
-        
+        stencil<<<1,PARENT_THREADS>>>(dA,  n);
+        __syncthreads();
     }
 }
 
@@ -108,29 +109,17 @@ int main(int argc, char** argv) {
             array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
-    
-    
-    // variables
-//    double *a, *b, *c, *d;
-//    double *d_a, *d_b, *d_c, *d_d;
-    
-    
     double *dA;
-    double *prev_dA;  // time t-1 matrix
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
-    cudaMalloc((void **)&prev_dA, size);
+    
     
     // Copy inputs to device
     cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
-//    cudaMemcpy(prev_dA, array, size, cudaMemcpyHostToDevice);
-    
     //launch kernal on device
-//    stencil<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_a,d_b, d_c);
     int t  = 10;
-    compute(dA, prev_dA, n, t)
+    compute(dA, n, t);
     cudaDeviceSynchronize();
-    
     // Copy result back to host
     cudaMemcpy(array, dA, size, cudaMemcpyDeviceToHost);
     double verisum = verisum_all(n, array);
