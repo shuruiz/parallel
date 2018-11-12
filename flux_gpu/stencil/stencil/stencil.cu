@@ -84,12 +84,14 @@ double verisum_all(int n, double *A){
 }
 
 double value_half(int n, double *A){
-    int fl = floor(n/2);
-    return A[fl * n + fl];
+    int fl = floor((double)n/2);
+    double result  = A[fl * n + fl];
+    return result;
 }
 
 double value_37_47(int n, double *A){
-    return A[37*n + 47];
+    double result =A[37*n + 47];
+    return result;
 }
 
 
