@@ -128,20 +128,22 @@ int main(int argc, char** argv) {
     cudaMalloc((void **)&dA, size);
 
     // Copy inputs to device
-    cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
+    
     //launch kernal on device
     int t  = 10;
     
     for(int episode =0; episode<t; episode++){
         printf("loop %d\n", episode );
+        
+        cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
         calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA);
         cudaDeviceSynchronize();
+        cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
+        
     }
     
-    
     // Copy result back to host
-    cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
-
+    
     //verify results
     double verisum = verisum_all(n, array);
     double half_value = value_half(n, array);
