@@ -28,10 +28,11 @@ __global__ void calc(int n, double *A){
     // const int RADIUS = n; 
     __shared__ double tmp[THREADS_PER_BLOCK + 2 * RADIUS]; //radius =n
     int gindex = threadIdx.x + blockIdx.x * blockDim.x;
-    int lindex = threadIdx.x + n ;
+    int lindex = threadIdx.x + n ; //local index + radius
+
     //read input elements into shared memory
     tmp[lindex] = A[gindex];
-    if(threadIdx.x < n){
+    if(threadIdx.x < n && gindex >n && gindex < n*n){ // the first row doesn't cal
         tmp[lindex-n] = A[gindex -n];
         //block size = threads per block
         tmp[lindex + THREADS_PER_BLOCK ] = A [gindex+ THREADS_PER_BLOCK];
@@ -97,8 +98,9 @@ int main(int argc, char** argv) {
 //2d stencil, represented by 1d stencil
     // initialize below
     double *array;
-    int size = N * sizeof(double);
-    array =(double *)malloc(N);
+    int size = (N) * sizeof(double);
+    array =(double *)malloc(size);
+
     for(int i =0; i<n;i++){
         for(int j =0; j<n; j++){
             array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
@@ -116,9 +118,8 @@ int main(int argc, char** argv) {
     stencil<<<1, PARENT_THREADS>>>(dA, n, t);
     cudaDeviceSynchronize();
     
-    
     // Copy result back to host
-    cudaMemcpy(array, dA, size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
 
     //verify results
     double verisum = verisum_all(n, array);
