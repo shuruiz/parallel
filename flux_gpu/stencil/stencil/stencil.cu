@@ -1,5 +1,5 @@
 //
-//  main.cpp
+//  stencil main program
 //  using CUDA to do parallel computing of stencil
 //  do t repeated run
 //  do it for n = 500, 1000, 20000 and  t = 10
@@ -67,10 +67,10 @@ __global__ void calc(int n, double *A){
 __global__ void stencil(double *dA,int n, int t){
     for(int episode = 0; episode <t; episode++){
         //int N = n*n;
-        calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA);
-        __syncthreads();
+        calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA); 
         printf("exec. in parent node\n");
     }
+    __syncthreads();
 }
 
 double verisum_all(int n, double *A){
