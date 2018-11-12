@@ -24,10 +24,10 @@ using namespace std;
 //child node
 __global__ void calc(int n, double *A){
     __shared__ double tmp[blockDim.x+2*n]; //radius =n
-    int gindex = threadId.x + blockIdx.x * blockDim.x;
-    int lindex = threadId.x + n ;
+    int gindex = threadIdx.x + blockIdx.x * blockDim.x;
+    int lindex = threadIdx.x + n ;
     //read input elements into shared memory
-    tmp[lindx] = A[gindex];
+    tmp[lindex] = A[gindex];
     if(threadIdx.x < n){
         tmp[lindex-n] = A[gindex -n];
         //block size = threads per block
