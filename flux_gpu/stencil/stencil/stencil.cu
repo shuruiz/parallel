@@ -18,7 +18,7 @@
 #define THREADS_PER_BLOCK 32
 #define BLOCKS 16
 #define PARENT_THREADS 32
-#define RADIUS  1000
+#define RADIUS  1001
 
 using namespace std;
 
@@ -28,12 +28,12 @@ __global__ void calc(int n, double *A){
     // const int RADIUS = n; 
     __shared__ double tmp[THREADS_PER_BLOCK + 2 * RADIUS]; //radius =n
     int gindex = threadIdx.x + blockIdx.x * blockDim.x;
-    int lindex = threadIdx.x + n ; //local index + radius
+    int lindex = threadIdx.x + RADIUS ; //local index + radius
 
     //read input elements into shared memory
     tmp[lindex] = A[gindex];
-    if(threadIdx.x < n && gindex >n && gindex < n*n){ // the first row doesn't cal
-        tmp[lindex-n] = A[gindex -n];
+    if(threadIdx.x < RADIUS && gindex >RADIUS && gindex < n*n){ // 
+        tmp[lindex - RADIUS] = A[gindex -RADIUS];
         //block size = threads per block
         tmp[lindex + THREADS_PER_BLOCK ] = A [gindex+ THREADS_PER_BLOCK];
     }
@@ -48,13 +48,13 @@ __global__ void calc(int n, double *A){
     }
     //find secondMin below
     else{
-        double candidates[] = {tmp[(i+1)*n+ (j+1)], tmp[(i+1)*n+(j-1)],tmp[(i-1)*n +(j+1)],tmp[(i-1)*n + (j-1)]};
+        double candidates[] = {tmp[(i+1)*n+ (j+1)], tmp[(i+1)*n+(j-1)],tmp[(i-1)*n +(j-1)],tmp[(i-1)*n + (j+1)]};
         for(int k =0; k<4; k++){
             if(candidates[k]<=first){
                 second = first;
                 first = candidates[k];
             }
-            else if (candidates[k] <= second && candidates[k] != first){
+            else if (candidates[k] <= second && candidates[k] >= first){
                 second = candidates[k];}
         }
         A[i*n+j] += second;
