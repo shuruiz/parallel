@@ -11,14 +11,12 @@
 #include <iostream>
 #include <algorithm>
 #include "stdio.h"
-#include <vector>
 #include "cmath"
 #include <float.h>
 #include "cuda.h"
 
 #define THREADS_PER_BLOCK 256
 #define PARENT_THREADS 128
-#define N_BLOCKS 16
 
 using namespace std;
 
@@ -26,9 +24,8 @@ using namespace std;
 //child node
 __global__
 void calc(int n, double *A){
-    
     __shared__ double tmp[blockDim.x+2*n]; //radius =n
-    int gindex = threadId.x + blockIdx.x *blockDim.x;
+    int gindex = threadId.x + blockIdx.x * blockDim.x;
     int lindex = threadId.x + n ;
     //read input elements into shared memory
     tmp[lindx] = A[gindex];
@@ -38,14 +35,13 @@ void calc(int n, double *A){
         tmp[lindex + THREADS_PER_BLOCK ] = A [gindex+ THREADS_PER_BLOCK];
     }
     __syncthreads();
-    
+
     //update A below
     double first, second;
     first = second = DBL_MAX;
     int i = floor(gindex / n);
     int j = gindex % n;
     if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
-        A[i*n+j] = prev_A[i*n+j];
     }
     //find secondMin below
     else{
@@ -61,7 +57,6 @@ void calc(int n, double *A){
         A[i*n+j] += second;
     }
 }
-
 
 //parent node
 __global__
@@ -123,7 +118,7 @@ int main(int argc, char** argv) {
     
     // Copy result back to host
     cudaMemcpy(array, dA, size, cudaMemcpyDeviceToHost);
-    
+
     //verify results
     double verisum = verisum_all(n, array);
     double half_value = value_half(n, array);
@@ -131,13 +126,11 @@ int main(int argc, char** argv) {
     
     //print result
     printf("verisum all %f/n", verisum);
-    printf("verisum n/2 %f/n", half_value);
-    printf("verisum A[37][47] %f/n", spec);
-    
+    printf("verification n/2 %f/n", half_value);
+    printf("verification A[37][47] %f/n", spec);
     
     //free memory
     free(array);
-    cudaFree(dA); cudaFree(prev_dA);
-  
+    cudaFree(dA);
     return 0;
 }
