@@ -15,9 +15,9 @@
 #include <float.h>
 #include "cuda.h"
 
-#define THREADS_PER_BLOCK 64
-#define BLOCKS 16
-#define PARENT_THREADS 64
+#define THREADS_PER_BLOCK 512
+// #define BLOCKS 16
+#define PARENT_THREADS 512
 #define RADIUS  1001
 
 using namespace std;
@@ -134,12 +134,10 @@ int main(int argc, char** argv) {
     
     for(int episode =0; episode<t; episode++){
         printf("loop %d\n", episode );
-
         cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
         calc<<<N/THREADS_PER_BLOCK +1 , THREADS_PER_BLOCK>>>(n, dA);
         cudaDeviceSynchronize();
         cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
-        
     }
     
     // Copy result back to host
