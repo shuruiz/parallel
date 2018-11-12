@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     // initialize below
     int n = *argv[1];
     int N  = n*n;
-    printf("size N\n",N)
+    printf("size N\n",N);
 //2d stencil, represented by 1d stencil
     // initialize below
     double *array;
