@@ -15,8 +15,9 @@
 #include <float.h>
 #include "cuda.h"
 
-#define THREADS_PER_BLOCK 256
-#define PARENT_THREADS 128
+#define THREADS_PER_BLOCK 64
+#define BLOCKS 32
+#define PARENT_THREADS 64
 #define RADIUS  1000
 
 using namespace std;
@@ -62,8 +63,8 @@ __global__ void calc(int n, double *A){
 //parent node
 __global__ void stencil(double *dA,int n, int t){
     for(int episode = 0; episode <t; episode++){
-        int N = n*n;
-        calc<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(n, dA);
+        //int N = n*n;
+        calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA);
         __syncthreads();
     }
 }
