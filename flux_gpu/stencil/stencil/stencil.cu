@@ -68,6 +68,8 @@ __global__ void stencil(double *dA,int n, int t){
     for(int episode = 0; episode <t; episode++){
         //int N = n*n;
         calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA); 
+        // __syncthreads();
+        cudaDeviceSynchronize();
         printf("exec. in parent node\n");
     }
     __syncthreads();
