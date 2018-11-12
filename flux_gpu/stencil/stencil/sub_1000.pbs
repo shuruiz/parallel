@@ -13,4 +13,4 @@ echo "I ran on:"
 cat $PBS_NODEFILE
 # Let PBS handle your output
 cd /home/shuruiz/eecs_parallel/parallel/flux_gpu/stencil/stencil
-./stencil
+./stencil 1000
