@@ -17,7 +17,7 @@
 
 #define THREADS_PER_BLOCK 256
 #define PARENT_THREADS 128
-#define RADIUS = 1000
+#define RADIUS  1000
 
 using namespace std;
 
@@ -25,7 +25,7 @@ using namespace std;
 //child node
 __global__ void calc(int n, double *A){
     // const int RADIUS = n; 
-    __shared__ double tmp[THREADS_PER_BLOCK+2*RADIUS]; //radius =n
+    __shared__ double tmp[THREADS_PER_BLOCK + 2 * RADIUS]; //radius =n
     int gindex = threadIdx.x + blockIdx.x * blockDim.x;
     int lindex = threadIdx.x + n ;
     //read input elements into shared memory
