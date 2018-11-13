@@ -107,7 +107,7 @@ int main(int argc, const char * argv[]) {
         MatrixUpdate<<<dimGrid, dimBlock>>>(d_M1, d_store);
     }
     t = clock()-t;
-    printf("total time %f\n", ((float)t)/CLOCKS_PER_SEC);
+    printf("total time %f\n", ((float)t)/(CLOCKS_PER_SEC));
     cout << "here4" << endl;
     
     Matrix res;
