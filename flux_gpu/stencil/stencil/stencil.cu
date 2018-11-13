@@ -15,52 +15,83 @@
 #include <float.h>
 #include "cuda.h"
 
-#define THREADS_PER_BLOCK 512
-#define BLOCKS 1024
-#define PARENT_THREADS 512
+#define THREADS_PER_BLOCK 256
+#define TASKS_PER_THREADS 1000
+#define BLOCKS 16
+#define N 1000*1000
 #define RADIUS  1001
-
+// #define TASKS 
 using namespace std;
 
 
 //child node
 __global__ void calc(int n, double *A){
     // const int RADIUS = n; 
-    __shared__ double tmp[THREADS_PER_BLOCK + 2 * RADIUS]; //radius =n
-    int gindex = threadIdx.x + blockIdx.x * blockDim.x;
-    int lindex = threadIdx.x + RADIUS ; //local index + radius
 
-    //read input elements into shared memory
-    tmp[lindex] = A[gindex];
-    if(threadIdx.x < RADIUS && gindex >RADIUS && gindex < n*n){ // 
-        tmp[lindex - RADIUS] = A[gindex -RADIUS];
-        //block size = threads per block
-        tmp[lindex + THREADS_PER_BLOCK ] = A [gindex+ THREADS_PER_BLOCK];
+    // int TASKS = ceil(N*1.0/(BLOCKS*THREADS_PER_BLOCK); //  number of elements assigned to each thread
+
+    __shared__ double tmp[THREADS_PER_BLOCK * TASKS_PER_THREADS + 2 * RADIUS]; //radius =n
+
+
+    // int gindex = (threadIdx.x + blockIdx.x * blockDim.x) * TASKS_PER_THREADS;  // global index of the start element in the threads
+    // int lindex = threadIdx.x * TASKS_PER_THREADS + RADIUS ; //local index + radius ,  local index of the starting element in the threads
+    
+
+    // for(int offset = 0; offset< TASKS_PER_THREADS; offset++){
+    //     tmp[lindex+offset] = A[gindex+offset];  //assign target ele to tmp
+
+    //     if(threadIdx.x < RADIUS && gindex >RADIUS && gindex < n*n){ // 
+    //         tmp[lindex - RADIUS] = A[gindex -RADIUS];
+    //         //block size = threads per block
+    //         tmp[lindex + THREADS_PER_BLOCK ] = A [gindex+ THREADS_PER_BLOCK];
+    //     }
+    // }
+
+    for(int offset=0; offset<TASKS_PER_THREADS; offset++){
+        int gindex = (threadIdx.x + blockIdx.x * blockDim.x) * TASKS_PER_THREADS + offset;  //how many elements ahead of the ele globally
+        int lindex = threadIdx.x * TASKS_PER_THREADS + RADIUS +  offset; // how many elements ahead of the ele locally, block level
+        
+        //read input elements into shared memory
+        tmp[lindex] = A[gindex]; 
+
+        //halo cells
+        if(threadIdx.x * TASKS_PER_THREADS +offset < RADIUS && gindex>= RADIUS && gindex <= (n*n - RADIUS)){
+            tmp[lindex - RADIUS] = A[gindex - RADIUS];
+            tmp[lindex + THREADS_PER_BLOCK * TASKS_PER_THREADS] = A[gindex + THREADS_PER_BLOCK *TASKS_PER_THREADS];
+        }
     }
     __syncthreads();
 
-    //update A below
-    double first, second;
-    first = second = DBL_MAX;
-    int i = floor((double)gindex / n);
-    int j = gindex % n;
-    if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
-    }
-    //find secondMin below
-    else{
-        double candidates[] = {tmp[(i+1)*n+ (j+1)], tmp[(i+1)*n+(j-1)],tmp[(i-1)*n +(j-1)],tmp[(i-1)*n + (j+1)]};
-        for(int k =0; k<4; k++){
-            if(candidates[k]<=first){
-                second = first;
-                first = candidates[k];
-            }
-            else if (candidates[k] <= second && candidates[k] >= first){
-                second = candidates[k];}
-        }
-        A[i*n+j] += second;
-    }
+    for(int offset=0; offset<TASKS_PER_THREADS; offset++){
 
-    printf("exec. in child node, block%d, threads%d\n", blockIdx.x, threadIdx.x);
+        int gindex = (threadIdx.x + blockIdx.x * blockDim.x) * TASKS_PER_THREADS + offset;  //how many elements ahead of the ele globally
+        int lindex = threadIdx.x * TASKS_PER_THREADS + RADIUS +  offset; // how many elements ahead of the ele locally, block level
+        //update A below
+        double first, second;
+        first = second = DBL_MAX;
+        int i = floor((double)gindex / n);
+        int j = gindex % n;
+
+        if(i ==0 || i ==n-1 || j ==0 || j ==n-1){ // unchanged, do nothing
+        }
+        //find secondMin below
+        else{
+            double candidates[] = {tmp[(i+1)*n+ (j+1)], tmp[(i+1)*n+(j-1)],tmp[(i-1)*n +(j-1)],tmp[(i-1)*n + (j+1)]};
+            for(int k =0; k<4; k++){
+                if(candidates[k]<=first){
+                    second = first;
+                    first = candidates[k];
+                }
+                else if (candidates[k] <= second && candidates[k] >= first){
+                    second = candidates[k];}
+            }
+            A[i*n+j] += second;
+        }
+
+    printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
+
+    }
+    
 }
 
 //parent node
@@ -97,7 +128,9 @@ int main(int argc, char** argv) {
     // initialize below
     int n = *argv[1];
     int N  = n*n;
-    printf("size N\n",N);
+
+
+    printf("size N%d\n",N);
 //2d stencil, represented by 1d stencil
     // initialize below
     double *array;
@@ -128,18 +161,17 @@ int main(int argc, char** argv) {
     cudaMalloc((void **)&dA, size);
 
     // Copy inputs to device
-    
+    cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
     //launch kernal on device
     int t  = 10;
     
     for(int episode =0; episode<t; episode++){
         printf("loop %d\n", episode );
-        cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
-        calc<<<BLOCKS , THREADS_PER_BLOCK>>>(n, dA);
-        cudaDeviceSynchronize();
-        cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
+        
+        calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA);
+        cudaDeviceSynchronize();   
     }
-    
+    cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
     // Copy result back to host
     
     //verify results
