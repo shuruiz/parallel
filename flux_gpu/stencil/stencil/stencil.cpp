@@ -16,22 +16,36 @@
 #include "cuda.h"
 #include <ctime>
 
-#define THREADS_PER_BLOCK 256
-#define TASKS_PER_THREADS 50
-#define BLOCKS 32
+#define THREADS_PER_BLOCK 20
+// #define TASKS_PER_THREADS 50
+// #define BLOCKS 32
 // #define N 1000*1000
-#define RADIUS  1001
+// #define RADIUS  1001
 // #define TASKS 
 using namespace std;
 
 
 //child node
 __global__ void calc(int n, double *A){
-    // const int RADIUS = n; 
 
-    // int TASKS = ceil(N*1.0/(BLOCKS*THREADS_PER_BLOCK); //  number of elements assigned to each thread
+    // each block has 20 threads, while deal with 20 pixels.
+    __shared__ double tmp[THREADS_PER_BLOCK  + 2 ][THREADS_PER_BLOCK  + 2 ]; //SM, above cells
 
-    __shared__ double tmp[THREADS_PER_BLOCK * TASKS_PER_THREADS + 2 * RADIUS]; //radius =n
+
+    int gindex_y = threadIdx.y + blockIdx.y * blockDim.y; 
+    int gindex_x = threadIdx.x + blockIdx.x * blockDim.x;
+
+    int lindex_x = threadIdx.x +1;
+    int lindex_y = threadIdx.y +1; 
+
+    tmp[lindex_x][lindex_y] = A[gindex_x][gindex_y];
+
+    if(gindex_x ==0 || gindex_x ==n-1 || gindex_y ==0 || gindex_y ==n-1){
+        // do nothing
+    }else{
+        tmp[lindex_x-1][lindex_y-1] = A[gindex_x-1][gindex_y-1]
+        
+    }
 
 
     // int gindex = (threadIdx.x + blockIdx.x * blockDim.x) * TASKS_PER_THREADS;  // global index of the start element in the threads
@@ -153,9 +167,6 @@ int main(int argc, char** argv) {
     printf("init verification n/2 %f\n", half_value_1);
     printf("init verification A[37][47] %f\n", spec_1);
 
-
-
-
     double *dA;
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
@@ -164,11 +175,12 @@ int main(int argc, char** argv) {
     cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
     //launch kernal on device
     int t  = 10;
+    dim3 dimBlock(THREADS_PER_BLOCK, THREADS_PER_BLOCK);
+    dim3 dimGrid(n/THREADS_PER_BLOCK, n/ THREADS_PER_BLOCK)
     
     for(int episode =0; episode<t; episode++){
         printf("loop %d\n", episode );
-        
-        calc<<<BLOCKS, THREADS_PER_BLOCK>>>(n, dA);
+        calc<<<dimBlock, dimGrid>>>(n, dA);
         cudaDeviceSynchronize();   
     }
     cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
