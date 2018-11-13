@@ -15,7 +15,7 @@
 #include <float.h>
 #include "cuda.h"
 
-#define THREADS_PER_BLOCK 256
+#define THREADS_PER_BLOCK 128
 #define TASKS_PER_THREADS 50
 #define BLOCKS 32
 // #define N 1000*1000
