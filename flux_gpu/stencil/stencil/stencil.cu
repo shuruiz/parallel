@@ -16,8 +16,8 @@
 #include "cuda.h"
 
 #define THREADS_PER_BLOCK 256
-#define TASKS_PER_THREADS 1000
-#define BLOCKS 16
+#define TASKS_PER_THREADS 50
+#define BLOCKS 32
 // #define N 1000*1000
 #define RADIUS  1001
 // #define TASKS 
@@ -127,7 +127,7 @@ double value_37_47(int n, double *A){
 int main(int argc, char** argv) {
     // initialize below
     int n = *argv[1];
-    
+
     int N  = n*n;
     printf("size N%d\n",N);
 //2d stencil, represented by 1d stencil
