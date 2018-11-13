@@ -65,7 +65,7 @@ __global__ void calc(int n, double *A){
     for(int offset=0; offset<TASKS_PER_THREADS; offset++){
 
         int gindex = (threadIdx.x + blockIdx.x * blockDim.x) * TASKS_PER_THREADS + offset;  //how many elements ahead of the ele globally
-        int lindex = threadIdx.x * TASKS_PER_THREADS + RADIUS +  offset; // how many elements ahead of the ele locally, block level
+        // int lindex = threadIdx.x * TASKS_PER_THREADS + RADIUS +  offset; // how many elements ahead of the ele locally, block level
         //update A below
         double first, second;
         first = second = DBL_MAX;
@@ -127,9 +127,8 @@ double value_37_47(int n, double *A){
 int main(int argc, char** argv) {
     // initialize below
     int n = *argv[1];
+    
     int N  = n*n;
-
-
     printf("size N%d\n",N);
 //2d stencil, represented by 1d stencil
     // initialize below
