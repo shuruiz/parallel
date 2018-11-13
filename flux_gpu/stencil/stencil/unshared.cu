@@ -101,12 +101,22 @@ int main(int argc, const char * argv[]) {
     dim3 dimGrid(matrix_size / BLOCK_SIZE, matrix_size / BLOCK_SIZE);
 
     cout << "here3" << endl;
+<<<<<<< HEAD
     double starttime = time(0);
     for (int i = 0; i < 10; i++) {
         MatrixUpdate<<<dimGrid, dimBlock>>>(d_M1, d_store);
     }
     double endtime = time(0);
     printf("total time %f\n", (starttime - endtime));
+=======
+    clock_t t; 
+    t = clock();
+    for (int i = 0; i < 10; i++) {
+        MatrixUpdate<<<dimGrid, dimBlock>>>(d_M1, d_store);
+    }
+    t = clock()-t;
+    printf("total time %f\n", ((float)t)/CLOCKS_PER_SEC);
+>>>>>>> 1035f61bf3f580f5b105d56589f8d52aeaddd302
     cout << "here4" << endl;
     
     Matrix res;
