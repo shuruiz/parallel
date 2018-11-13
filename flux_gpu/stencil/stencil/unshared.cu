@@ -101,11 +101,11 @@ int main(int argc, const char * argv[]) {
     dim3 dimGrid(matrix_size / BLOCK_SIZE, matrix_size / BLOCK_SIZE);
 
     cout << "here3" << endl;
-    double starttime = time();
+    double starttime = time(0);
     for (int i = 0; i < 10; i++) {
         MatrixUpdate<<<dimGrid, dimBlock>>>(d_M1, d_store);
     }
-    double endtime = time();
+    double endtime = time(0);
     printf("total time %f\n", (starttime - endtime));
     cout << "here4" << endl;
     
