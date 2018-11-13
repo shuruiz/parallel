@@ -18,7 +18,7 @@
 #define THREADS_PER_BLOCK 256
 #define TASKS_PER_THREADS 1000
 #define BLOCKS 16
-#define N 1000*1000
+// #define N 1000*1000
 #define RADIUS  1001
 // #define TASKS 
 using namespace std;
