@@ -1,0 +1,19 @@
+I ran on:
+nyx7507
+size N4000000
+init verisum all 8005322.625867
+init verification n/2 2.129907
+init verification A[37][47] 1.677777
+loop 0
+loop 1
+loop 2
+loop 3
+loop 4
+loop 5
+loop 6
+loop 7
+loop 8
+loop 9
+verisum all 1978068425.027344
+verification n/2 500.921145
+verification A[37][47] 541.702793
