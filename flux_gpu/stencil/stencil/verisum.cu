@@ -140,8 +140,10 @@ int main(int argc, char** argv) {
     // 1d stencil
 
     double *array;
+    double *sum;
     int size = (N) * sizeof(double);
     array =(double *)malloc(size);
+    sum = (double *)malloc(size);
 
     for(int i =0; i<n;i++){
         for(int j =0; j<n; j++){
@@ -194,10 +196,11 @@ int main(int argc, char** argv) {
         prev_dA = tem_a;  
     }
 
-    reduce<<<dimGrid,dimBlock>>>(prev_dA,g_out);
+    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out);
     cudaEventRecord(stop, 0);
     
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(sum,g_out, size, cudaMemcpyDeviceToHost);
 
     cudaEventElapsedTime(&time, start, stop);
 
@@ -206,16 +209,17 @@ int main(int argc, char** argv) {
     double v3 = array[37*n+47];
         //print result
     printf ("Time for the kernel: %f ms\n", time);
-    printf("verisum all %f\n", g_out[0]);
+    printf("verisum all %f\n", sum[0]);
     printf("verification n/2 %f\n", v2);
     printf("verification A[37][47] %f\n", v3);
 
 
     //free memory
     free(array);
-    // free(tem_a);
+    free(sum);
     cudaFree(dA);
     cudaFree(prev_dA);
     cudaFree(g_out);
+
     return 0;
 }
