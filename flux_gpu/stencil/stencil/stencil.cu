@@ -69,7 +69,7 @@ void calc(int n, double *dA, double *prev_dA){
         dA[i*n+j] = prev_dA[i*n+j] + get2ndMin(candidates);
     }
     __syncthreads();
-    printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
+    //printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
 }
 
 //parent node
@@ -122,7 +122,7 @@ double value_37_47(int n, double *A){
 
 int main(int argc, char** argv) {
     // initialize below
-    int n = *argv[1];
+    int n = atoi(argv[1]);
     int N  = n*n;
     printf("size N%d\n",N);
 
