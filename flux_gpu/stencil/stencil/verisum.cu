@@ -154,6 +154,12 @@ int main(int argc, char** argv) {
             array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
+    for(int i=0; i<step; i++){
+        for(int j=0; j<step; j++){
+            sum[i][j] =0.0;
+        }
+    }
+
 
     //verify initialization results
     double verisum_1 = verisum_all(n, array);
@@ -177,7 +183,7 @@ int main(int argc, char** argv) {
     // Copy inputs to device
     cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
     cudaMemcpy(prev_dA, array, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(g_out, array, g_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(g_out, sum, g_size, cudaMemcpyHostToDevice);
 
     //launch kernal on device
     int t  = 10;
