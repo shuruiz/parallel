@@ -206,20 +206,18 @@ int main(int argc, char** argv) {
         prev_dA = tem_a;  
     }
     
-    // reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out); //better verification
+
+    verification<<<1,1>>>(prev_dA,n); //  para1 verification 
+    cudaEventRecord(stop, 0);
+    cudaDeviceSynchronize();
+    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
+    cudaEventElapsedTime(&time, start, stop);
+     // reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out); //better verification
     // cudaMemcpy(sum,g_out, size, cudaMemcpyDeviceToHost);
     // double verisum=0;
     // for(int i=0; i<step*step; i++){
     //     verisum += sum[i];
     // }
-    cudaEventRecord(stop, 0);
-    verification<<<1,1>>>(prev_dA,n); //  verification 
-    cudaDeviceSynchronize();
-    
-    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
-    
-    cudaEventElapsedTime(&time, start, stop);
-    
         //print result
     printf ("Time for the kernel: %f ms\n", time);
     printf("verisum all %f\n", array[0]);
