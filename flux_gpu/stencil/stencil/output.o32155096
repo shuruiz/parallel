@@ -1,0 +1,3 @@
+I ran on:
+nyx7510
+/var/spool/torque/mom_priv/jobs/32155096.nyx.arc-ts.umich.edu.SC: line 16: 13718 Segmentation fault      (core dumped) ./stencil 1000
