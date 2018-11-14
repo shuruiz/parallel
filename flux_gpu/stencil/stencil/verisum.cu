@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
     // 1d stencil
 
     double *array;
-    double *sum;
+    // double *sum;
     // int step = n/THREADS_PER_DIM; 
     int size = (N) * sizeof(double);
 
@@ -212,10 +212,10 @@ int main(int argc, char** argv) {
     // for(int i=0; i<step*step; i++){
     //     verisum += sum[i];
     // }
-    
+    cudaEventRecord(stop, 0);
     verification<<<1,1>>>(prev_dA,n); //  verification 
     cudaDeviceSynchronize();
-    cudaEventRecord(stop, 0);
+    
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
     
     cudaEventElapsedTime(&time, start, stop);
