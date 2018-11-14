@@ -66,8 +66,8 @@ void calc(int n, double *dA, double *prev_dA){
 // }
 
 
-__global__ void reduce(int *g_idata, int *g_odata) {
-    extern __shared__ int sdata[];
+__global__ void reduce(double *g_idata, double *g_odata) {
+    extern __shared__ double sdata[];
     // each thread loads one element from global to shared mem
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
 
     int fl = floor((double)n/2);
     double v2 = array[fl*n+fl];
-    double v3 = A[37*n+47];
+    double v3 = array[37*n+47];
         //print result
     printf ("Time for the kernel: %f ms\n", time);
     printf("verisum all %f\n", g_out[0]);
