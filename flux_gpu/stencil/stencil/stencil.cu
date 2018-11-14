@@ -27,7 +27,7 @@ using namespace std;
 __device__
 double get2ndMin(double *candidates){
     double first, second;
-    first = second =DBL_MAX;
+    first = second = DBL_MAX;
     for(int k =0; k<4; k++){
         if(candidates[k]<=first){
             second = first;
@@ -68,7 +68,7 @@ void calc(int n, double *dA, double *prev_dA){
         double candidates[] = {prev_dA[(i+1)*n+(j+1)], prev_dA[(i+1)*n+(j-1)],prev_dA[(i-1)*n+(j-1)],prev_dA[(i-1)*n+(j+1)]};
         dA[i*n+j] = prev_dA[i*n+j] + get2ndMin(candidates);
     }
-    __syncthreads();
+    // __syncthreads();
     // printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
 }
 
@@ -84,10 +84,8 @@ __global__
 void verification(double *A, int n){
     double v1,v2,v3;
     v1 = 0.0;
-    for(int i=0; i<n; i++){
-        for(int j=0; j<n; j++){
-            v1 += A[i*n+j];
-        }
+    for(int i=0; i<n*n; i++){
+            v1 += A[i];
     }
 
     int fl = floor((double)n/2);
@@ -175,14 +173,13 @@ int main(int argc, char** argv) {
         // printf("loop %d\n", episode );
         calc<<<dimGrid, dimBlock>>>(n, dA, prev_dA);
         cudaDeviceSynchronize();
-
-        double *tem_a = dA;
-        dA = prev_dA;
-        prev_dA = tem_a;  
+        // double *tem_a = dA;
+        // dA = prev_dA;
+        prev_dA = dA;  
     }
-
     verification<<<1,1>>>(prev_dA,n);
     cudaEventRecord(stop, 0);
+
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
     cudaEventElapsedTime(&time, start, stop);
 
