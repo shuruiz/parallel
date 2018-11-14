@@ -65,48 +65,47 @@ void calc(int n, double *dA, double *prev_dA){
 //     printf("exec. in parent node\n");
 // }
 
-
-__global__ void reduce(double *g_idata, int n, int step, double *g_odata) {
+__global__ void reduce(double *g_idata, double *g_odata) {
     extern __shared__ double sdata[];
+    // each thread loads one element from global to shared mem
+    // perform first level of reduction,
     // reading from global memory, writing to shared memory
-    unsigned int tid = threadIdx.x*blockDim.x+threadIdx.y;
-
-    unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-    unsigned int j = blockIdx.y*blockDim.y + threadIdx.y;
-    sdata[tid] = g_idata[i*n+j];
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+    sdata[tid] = g_idata[i] + g_idata[i+blockDim.x];
     __syncthreads();
-
     // do reduction in shared mem
-    for(unsigned int s=1; s < blockDim.x*blockDim.y; s *= 2) {
-        if (tid % (2*s) == 0) {
-            sdata[tid] += sdata[tid + s];
-        }
-        __syncthreads();
+    for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
+    if (tid < s) {
+        sdata[tid] += sdata[tid + s];
+    }
+    __syncthreads();
     }
     // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x *step+blockIdx.y] = sdata[0]; //thread 0 get the 
+    if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
 
 
 
-// __global__
-// void verification(double *A, int n){
-//     int j = threadIdx.y + blockIdx.y * blockDim.y; 
-//     int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-//     sum += A[i*n+j];
-//     __syncthreads();
+__global__
+void verification(double *A, int n){
+    int j = threadIdx.y + blockIdx.y * blockDim.y; 
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-//     // A[0] = sum;
-//     double v2, v3; 
-//     int fl = floor((double)n/2);
-//     v2 = A[fl*n+fl];
-//     v3 = A[37*n+47];
-//     // __syncthreads()
-//     A[1] = v2;
-//     A[2] = v3; 
-// }
+    sum += A[i*n+j];
+    __syncthreads();
+
+    // A[0] = sum;
+    double v2, v3; 
+    int fl = floor((double)n/2);
+    v2 = A[fl*n+fl];
+    v3 = A[37*n+47];
+    // __syncthreads()
+    A[1] = v2;
+    A[2] = v3; 
+}
 
 
 double verisum_all(int n, double *A){
@@ -142,23 +141,23 @@ int main(int argc, char** argv) {
 
     double *array;
     double *sum;
-    int step = n/THREADS_PER_DIM; 
+    // int step = n/THREADS_PER_DIM; 
     int size = (N) * sizeof(double);
 
     int g_size = (step*step) * sizeof(double); 
     array =(double *)malloc(size);
-    sum = (double *)malloc(g_size);
+    // sum = (double *)malloc(step);
 
     for(int i =0; i<n;i++){
         for(int j =0; j<n; j++){
             array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
-    for(int i=0; i<step; i++){
-        for(int j=0; j<step; j++){
-            sum[i][j] =0.0;
-        }
-    }
+    // for(int i=0; i<step; i++){
+    //     for(int j=0; j<step; j++){
+    //         sum[i*n+j] =0.0;
+    //     }
+    // }
 
 
     //verify initialization results
@@ -173,17 +172,17 @@ int main(int argc, char** argv) {
 
     double *dA;
     double *prev_dA;
-    double *g_out;
+    // double *g_out;
     
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
     cudaMalloc((void **)&prev_dA, size);
-    cudaMalloc((void **)&g_out, g_size);
+    // cudaMalloc((void **)&g_out, size);
 
     // Copy inputs to device
     cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
     cudaMemcpy(prev_dA, array, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(g_out, sum, g_size, cudaMemcpyHostToDevice);
+    // cudaMemcpy(g_out, sum, size, cudaMemcpyHostToDevice);
 
     //launch kernal on device
     int t  = 10;
@@ -193,9 +192,9 @@ int main(int argc, char** argv) {
     float time;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
+
     // double v1 =0.0; 
     
-
     cudaEventRecord(start, 0);
 
     for(int episode =0; episode<t; episode++){
@@ -207,28 +206,29 @@ int main(int argc, char** argv) {
         dA = prev_dA;
         prev_dA = tem_a;  
     }
-
-    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,n,step, g_out);
+    
+    // reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out); //better verification
+    // cudaMemcpy(sum,g_out, size, cudaMemcpyDeviceToHost);
+    // double verisum=0;
+    // for(int i=0; i<step*step; i++){
+    //     verisum += sum[i];
+    // }
+    
+    verification<<<1,1>>>(prev_dA,n); //  verification 
     cudaDeviceSynchronize();
     cudaEventRecord(stop, 0);
-    
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(sum,g_out, g_size, cudaMemcpyDeviceToHost);
-
+    
     cudaEventElapsedTime(&time, start, stop);
-    double verisum=0;
-    for(int i=0; i<step*step; i++){
-        verisum += sum[i];
-    }
-
-    int fl = floor((double)n/2);
-    double v2 = array[fl*n+fl];
-    double v3 = array[37*n+47];
+    
         //print result
     printf ("Time for the kernel: %f ms\n", time);
-    printf("verisum all %f\n", verisum);
-    printf("verification n/2 %f\n", v2);
-    printf("verification A[37][47] %f\n", v3);
+    printf("verisum all %f\n", array[0]);
+    printf("verification n/2 %f\n", array[1]);
+    printf("verification A[37][47] %f\n", array[2]);
+
+
+
 
 
     //free memory
