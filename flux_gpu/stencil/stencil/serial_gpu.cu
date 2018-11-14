@@ -41,7 +41,7 @@ double get2ndMin(double *candidates){
 
 
 __global__ 
-void serial_calc(int n, double *dA, double *prev_dA){
+void serial_calc(int n, double *A, double *prev_A){
 
     for(int i = 0; i<n; i++){
         for(int j=0; j<n; j++){
@@ -176,7 +176,6 @@ int main(int argc, char** argv) {
         // printf("loop %d\n", episode );
         serial_calc<<<1, 1>>>(n, dA, prev_dA);
         cudaDeviceSynchronize();
-
         double *tem_a = dA;
         dA = prev_dA;
         prev_dA = tem_a;  
