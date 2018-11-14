@@ -177,8 +177,10 @@ int main(int argc, char** argv) {
         // dA = prev_dA;
         prev_dA = dA;  
     }
-    verification<<<1,1>>>(prev_dA,n);
     cudaEventRecord(stop, 0);
+    
+    verification<<<1,1>>>(prev_dA,n);
+    
 
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
     cudaEventElapsedTime(&time, start, stop);
