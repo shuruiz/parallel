@@ -56,20 +56,20 @@ double get2ndMin(double *candidates){
 
 
 __global__ 
-void calc(int n, double **dA, double **prev_dA){
+void calc(int n, double *dA, double *prev_dA){
 
-    int gindex_y = threadIdx.y + blockIdx.y * blockDim.y; 
-    int gindex_x = threadIdx.x + blockIdx.x * blockDim.x;
+    int j = threadIdx.y + blockIdx.y * blockDim.y; 
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-    if(gindex_x ==0 || gindex_x ==n-1 || gindex_y ==0 || gindex_y ==n-1){
-        dA[gindex_x][gindex_y] = prev_dA[gindex_x][gindex_y];
+    if(i ==0 || i ==n-1 || j ==0 || j ==n-1){
+        dA[i*n+j] = prev_dA[i*n+j];
     }else{
-        // tmp[lindex_x-1][lindex_y-1] = A[gindex_x-1][gindex_y-1]
-        double candidates[] = {prev_dA[gindex_x+1][gindex_y+1], prev_dA[gindex_x+1][gindex_y-1],prev_dA[gindex_x-1][gindex_y-1],prev_dA[gindex_x-1][gindex_y+1]};
-        dA[gindex_x][gindex_y] = prev_dA[gindex_x][gindex_y] + get2ndMin(candidates);
+        // tmp[lindex_x-1][lindex_y-1] = A[i-1][j-1]
+        double candidates[] = {prev_dA[(i+1)*n+(j+1)], prev_dA[(i+1)*n+(j-1)],prev_dA[(i-1)*n+(j-1)],prev_dA[(i-1)*n+(j+1)]};
+        dA[i*n+j] = prev_dA[i*n+j] + get2ndMin(candidates);
     }
     __syncthreads();
-    printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, gindex_x, gindex_y);
+    printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
 }
 
 //parent node
@@ -81,25 +81,25 @@ void calc(int n, double **dA, double **prev_dA){
 // }
 
 __global__
-void verification(double **A, double *result, int n){
+void verification(double *A, int n){
     double v1,v2,v3;
     v1 = 0.0;
     for(int i=0; i<n; i++){
         for(int j=0; j<n; j++){
-            v1 += A[i][j];
+            v1 += A[i*n+j];
         }
     }
 
     int fl = floor((double)n/2);
-    v2 = A[fl][fl];
-    v3 = A[37][47];
-    result[0] = v1; 
-    result[1] = v2;
-    result[2] = v3; 
+    v2 = A[fl*n+fl];
+    v3 = A[37*n+47];
+    A[0] = v1; 
+    A[1] = v2;
+    A[2] = v3; 
 
 }
 
-double verisum_all(int n, double **A){
+double verisum_all(int n, double *A){
     double sum=0.0;
     for(int i = 0; i<n; i++){
         for(int j=0; j<n; j++){
@@ -109,38 +109,33 @@ double verisum_all(int n, double **A){
     return sum;
 }
 
-double value_half(int n, double **A){
+double value_half(int n, double *A){
     int fl = floor((double)n/2);
     double result  = A[fl][fl];
     return result;
 }
 
-double value_37_47(int n, double **A){
+double value_37_47(int n, double *A){
     double result =A[37][47];
     return result;
 }
 
-
 int main(int argc, char** argv) {
     // initialize below
     int n = *argv[1];
-
     int N  = n*n;
     printf("size N%d\n",N);
 
     // initialize below
-    double **array;
-    double *result; 
-    // int size = (N) * sizeof(double*);
-    int size = sizeof(double *) * n + sizeof(double) * N; 
-    array =(double **)malloc(size);
+    // 1d stencil
 
-    int size_result = 3* sizeof(double);
-    result = (double *)malloc(size_result);
+    double *array;
+    int size = (N) * sizeof(double);
+    array =(double *)malloc(size);
 
     for(int i =0; i<n;i++){
         for(int j =0; j<n; j++){
-            array[i][j] = pow(1+cos(2*i)+sin(j),2);
+            array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
 
@@ -154,18 +149,15 @@ int main(int argc, char** argv) {
     printf("init verification n/2 %f\n", half_value_1);
     printf("init verification A[37][47] %f\n", spec_1);
 
-    double **dA;
-    double **prev_dA;
-    double *d_result;
+    double *dA;
+    double *prev_dA;
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
     cudaMalloc((void **)&prev_dA, size);
-    cudaMalloc((void **)&d_result, size_result);
 
     // Copy inputs to device
     cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
     cudaMemcpy(prev_dA, array, size, cudaMemcpyHostToDevice);
-
 
     //launch kernal on device
     int t  = 10;
@@ -177,25 +169,22 @@ int main(int argc, char** argv) {
         calc<<<dimGrid, dimBlock>>>(n, dA, prev_dA);
         cudaDeviceSynchronize();
 
-        double **tem_a = dA;
+        double *tem_a = dA;
         dA = prev_dA;
         prev_dA = tem_a;  
     }
 
-    verification<<<1,1>>>(prev_dA, d_result, n);
-
-    cudaMemcpy(result,d_result, size_result, cudaMemcpyDeviceToHost);
+    verification<<<1,1>>>(prev_dA,n);
+    cudaMemcpy(array,prev_dA, size_result, cudaMemcpyDeviceToHost);
 
     //print result
-    printf("verisum all %f\n", result[0]);
-    printf("verification n/2 %f\n", result[1]);
-    printf("verification A[37][47] %f\n", result[2]);
+    printf("verisum all %f\n", array[0]);
+    printf("verification n/2 %f\n", array[1]);
+    printf("verification A[37][47] %f\n", array[2]);
     
     //free memory
     free(array);
-    free(result);
     cudaFree(dA);
     cudaFree(prev_dA);
-    cudaFree(d_result);
     return 0;
 }
