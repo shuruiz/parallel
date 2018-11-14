@@ -25,7 +25,7 @@
 using namespace std;
 
 __device__
-double get2ndMin(double *tmp){
+double get2ndMin(double *candidates){
     double first, second;
     first = second =DBL_MAX;
     for(int k =0; k<4; k++){
@@ -69,7 +69,7 @@ void calc(int n, double **dA, double **prev_dA){
         dA[gindex_x][gindex_y] = prev_dA[gindex_x][gindex_y] + get2ndMin(candidates);
     }
     __syncthreads();
-    printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
+    printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, gindex_x, gindex_y);
 }
 
 //parent node
@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
     //print result
     printf("verisum all %f\n", result[0]);
     printf("verification n/2 %f\n", result[1]);
-    printf("verification A[37][47] %f\n", result1);
+    printf("verification A[37][47] %f\n", result[2]);
     
     //free memory
     free(array);
