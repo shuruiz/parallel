@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
 
     for(int episode =0; episode<t; episode++){
         // printf("loop %d\n", episode );
-        calc<<<1, 1g>>>(n, dA, prev_dA);
+        calc<<<1, 1>>>(n, dA, prev_dA);
         cudaDeviceSynchronize();
 
         double *tem_a = dA;
