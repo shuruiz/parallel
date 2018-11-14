@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
     }
     for(int i=0; i<step; i++){
         for(int j=0; j<step; j++){
-            sum[i][j] =0.0;
+            sum[i*step+j] =0.0;
         }
     }
 
