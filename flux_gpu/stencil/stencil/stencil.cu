@@ -66,8 +66,9 @@ void calc(int n, double *dA, double *prev_dA){
 // }
 
 __global__
-void verification(double *A, double v1, int n){
+void verification(double *A, int n){
     double v2,v3;
+    static __device__ double v1;
     int fl = floor((double)n/2);
     v2 = A[fl*n+fl];
     v3 = A[37*n+47];
@@ -76,11 +77,8 @@ void verification(double *A, double v1, int n){
     // v1 = 0.0;
     int j = threadIdx.y + blockIdx.y * blockDim.y; 
     int i = threadIdx.x + blockIdx.x * blockDim.x;
-    if(i!=0 && j!= 0){
-        A[i*n+j-1] += A[i*n+j]; 
-    }
-    __syncthreads();
-
+    v1 += A[i*n+j];
+    // __syncthreads();
     A[1] = v2;
     A[2] = v3; 
 }
@@ -173,7 +171,7 @@ int main(int argc, char** argv) {
     float time;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    double v1 =0.0; 
+    // double v1 =0.0; 
 
     cudaEventRecord(start, 0);
 
@@ -183,19 +181,32 @@ int main(int argc, char** argv) {
         cudaDeviceSynchronize();
         prev_dA = dA;  
     }
+    dA = prev_dA; 
+    verification<<<dimGrid,dimBlock>>>(prev_dA,n);
 
-    verification<<<dimGrid,dimBlock>>>(prev_dA, v1, n);
     cudaEventRecord(stop, 0);
-
+    
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
-    cudaEventElapsedTime(&time, start, stop);
-
-
-    //print result
+        //print result
     printf ("Time for the kernel: %f ms\n", time);
     printf("verisum all %f\n", array[0]);
     printf("verification n/2 %f\n", array[1]);
     printf("verification A[37][47] %f\n", array[2]);
+
+
+    traditional_veri<<<1,1>>>(dA,n);
+    cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
+        //print result
+    printf ("Time for the kernel: %f ms\n", time);
+    printf("verisum all %f\n", array[0]);
+    printf("verification n/2 %f\n", array[1]);
+    printf("verification A[37][47] %f\n", array[2]);
+    
+
+    cudaEventElapsedTime(&time, start, stop);
+
+
+
     
     //free memory
     free(array);
