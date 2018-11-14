@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
 
     //free memory
     free(array);
-    free(tem_a);
+    // free(tem_a);
     cudaFree(dA);
     cudaFree(prev_dA);
     return 0;
