@@ -41,21 +41,35 @@ double get2ndMin(double *candidates){
 
 
 __global__ 
-void calc(int n, double *dA, double *prev_dA){
+void serial_calc(int n, double *dA, double *prev_dA){
 
-    int j = threadIdx.y + blockIdx.y * blockDim.y; 
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    for(int i = 0; i<n; i++){
+        for(int j=0; j<n; j++){
+            if(i==0 || i==n-1 || j==0 || j==n-1){
+                A[i*n+j] = prev_A[i*n+ j];
+            }
+            double candidates[] ={A[(i+1)*n+ (j+1)], A[(i+1)*n +(j-1)], A[(i-1)*n + j-1], A[(i-1)*n + j+1]};
 
-    if(i ==0 || i ==n-1 || j ==0 || j ==n-1){
-        dA[i*n+j] = prev_dA[i*n+j];
-    }else{
-        // tmp[lindex_x-1][lindex_y-1] = A[i-1][j-1]
-        double candidates[] = {prev_dA[(i+1)*n+(j+1)], prev_dA[(i+1)*n+(j-1)],prev_dA[(i-1)*n+(j-1)],prev_dA[(i-1)*n+(j+1)]};
-        dA[i*n+j] = prev_dA[i*n+j] + get2ndMin(candidates);
+            A[i*n+j] = prev_A[i*n+j] + get2ndMin(candidates);
+        }
+    // printf("i %d\n", i);
+
     }
-    __syncthreads();
-    // printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
 }
+
+    // int j = threadIdx.y + blockIdx.y * blockDim.y; 
+    // int i = threadIdx.x + blockIdx.x * blockDim.x;
+
+    // if(i ==0 || i ==n-1 || j ==0 || j ==n-1){
+    //     dA[i*n+j] = prev_dA[i*n+j];
+    // }else{
+    //     // tmp[lindex_x-1][lindex_y-1] = A[i-1][j-1]
+    //     double candidates[] = {prev_dA[(i+1)*n+(j+1)], prev_dA[(i+1)*n+(j-1)],prev_dA[(i-1)*n+(j-1)],prev_dA[(i-1)*n+(j+1)]};
+    //     dA[i*n+j] = prev_dA[i*n+j] + get2ndMin(candidates);
+    // }
+    // __syncthreads();
+    // printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
+// }
 
 //parent node
 // __global__ void stencil(double *dA,int n){
@@ -160,7 +174,11 @@ int main(int argc, char** argv) {
 
     for(int episode =0; episode<t; episode++){
         // printf("loop %d\n", episode );
+<<<<<<< HEAD
         calc<<<1, 1>>>(n, dA, prev_dA);
+=======
+        serial_calc<<<1, 1>>>(n, dA, prev_dA);
+>>>>>>> 80039195cea374eefa28ce02089aa186489d45f4
         cudaDeviceSynchronize();
 
         double *tem_a = dA;
