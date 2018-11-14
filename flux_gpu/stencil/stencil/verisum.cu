@@ -153,19 +153,11 @@ int main(int argc, char** argv) {
             array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
-<<<<<<< HEAD
-    for(int i=0; i<step; i++){
-        for(int j=0; j<step; j++){
-            sum[i*step+j] =0.0;
-        }
-    }
-=======
     // for(int i=0; i<step; i++){
     //     for(int j=0; j<step; j++){
     //         sum[i*n+j] =0.0;
     //     }
     // }
->>>>>>> 7ef1dde9cf28d66ad364f880453a33fe379222b7
 
 
     //verify initialization results
