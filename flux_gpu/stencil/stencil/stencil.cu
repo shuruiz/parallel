@@ -127,11 +127,12 @@ int main(int argc, char** argv) {
 
     int N  = n*n;
     printf("size N%d\n",N);
-//2d stencil, represented by 1d stencil
+
     // initialize below
     double **array;
     double *result; 
-    int size = (N) * sizeof(double);
+    // int size = (N) * sizeof(double*);
+    int size = sizeof(double *) * n + sizeof(double) * N; 
     array =(double **)malloc(size);
 
     int size_result = 3* sizeof(double);
