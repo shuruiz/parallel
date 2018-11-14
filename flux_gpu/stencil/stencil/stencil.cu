@@ -103,7 +103,7 @@ double verisum_all(int n, double *A){
     double sum=0.0;
     for(int i = 0; i<n; i++){
         for(int j=0; j<n; j++){
-            sum += A[i][j];
+            sum += A[i*n+j];
         }
     }
     return sum;
@@ -111,12 +111,12 @@ double verisum_all(int n, double *A){
 
 double value_half(int n, double *A){
     int fl = floor((double)n/2);
-    double result  = A[fl][fl];
+    double result  = A[fl*n+ fl];
     return result;
 }
 
 double value_37_47(int n, double *A){
-    double result =A[37][47];
+    double result =A[37*n+47];
     return result;
 }
 
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
     }
 
     verification<<<1,1>>>(prev_dA,n);
-    cudaMemcpy(array,prev_dA, size_result, cudaMemcpyDeviceToHost);
+    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
 
     //print result
     printf("verisum all %f\n", array[0]);
