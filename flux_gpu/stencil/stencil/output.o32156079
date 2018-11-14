@@ -1,0 +1,10 @@
+I ran on:
+nyx7510
+size N1000000
+init verisum all 2001958.317518
+init verification n/2 1.198165
+init verification A[37][47] 1.677777
+Time for the kernel: 8.624544 ms
+verisum all 491725407.791573
+verification n/2 571.906258
+verification A[37][47] 541.702793
