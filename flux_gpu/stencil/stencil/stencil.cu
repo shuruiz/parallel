@@ -64,29 +64,11 @@ void calc(int n, double *dA, double *prev_dA){
 //     __syncthreads();
 //     printf("exec. in parent node\n");
 // }
-__device__  static double v1;
+
 
 __global__
 void verification(double *A, int n){
-    double v2,v3;
-
-    int fl = floor((double)n/2);
-    v2 = A[fl*n+fl];
-    v3 = A[37*n+47];
-
-    // v1 = 0.0;
-    int j = threadIdx.y + blockIdx.y * blockDim.y; 
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    v1 += A[i*n+j];
-    // __syncthreads();
-    A[0] = v1;
-    A[1] = v2;
-    A[2] = v3; 
-}
-
-__global__
-void traditional_veri(double *A, int n){
-    double v1,v2,v3;
+    double v1, v2,v3;
     v1 = 0.0;
     for(int i=0; i<n; i++){
         for(int j=0; j<n; j++){
@@ -97,10 +79,10 @@ void traditional_veri(double *A, int n){
     int fl = floor((double)n/2);
     v2 = A[fl*n+fl];
     v3 = A[37*n+47];
-    A[0] = v1; 
+    // __syncthreads();
+    A[0] = v1;
     A[1] = v2;
     A[2] = v3; 
-
 }
 
 double verisum_all(int n, double *A){
@@ -182,9 +164,7 @@ int main(int argc, char** argv) {
         cudaDeviceSynchronize();
         prev_dA = dA;  
     }
-    dA = prev_dA; 
-    verification<<<dimGrid,dimBlock>>>(prev_dA,n);
-
+    verification<<<1,1>>>(prev_dA,n);
     cudaEventRecord(stop, 0);
     
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
@@ -196,20 +176,6 @@ int main(int argc, char** argv) {
     printf("verification A[37][47] %f\n", array[2]);
 
 
-    traditional_veri<<<1,1>>>(dA,n);
-    cudaMemcpy(array,dA, size, cudaMemcpyDeviceToHost);
-        //print result
-    printf ("Time for the kernel: %f ms\n", time);
-    printf("verisum all %f\n", array[0]);
-    printf("verification n/2 %f\n", array[1]);
-    printf("verification A[37][47] %f\n", array[2]);
-    
-
-    
-
-
-
-    
     //free memory
     free(array);
     cudaFree(dA);
