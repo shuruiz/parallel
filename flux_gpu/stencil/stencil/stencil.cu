@@ -69,7 +69,7 @@ void calc(int n, double *dA, double *prev_dA){
         dA[i*n+j] = prev_dA[i*n+j] + get2ndMin(candidates);
     }
     __syncthreads();
-    //printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
+    // printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
 }
 
 //parent node
@@ -123,6 +123,7 @@ double value_37_47(int n, double *A){
 int main(int argc, char** argv) {
     // initialize below
     int n = atoi(argv[1]);
+
     int N  = n*n;
     printf("size N%d\n",N);
 
@@ -163,9 +164,15 @@ int main(int argc, char** argv) {
     int t  = 10;
     dim3 dimBlock(THREADS_PER_DIM, THREADS_PER_DIM);
     dim3 dimGrid(n/THREADS_PER_DIM, n/ THREADS_PER_DIM);
-    
+    cudaEvent_t start, stop;
+    float time;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    cudaEventRecord(start, 0);
+
     for(int episode =0; episode<t; episode++){
-        printf("loop %d\n", episode );
+        // printf("loop %d\n", episode );
         calc<<<dimGrid, dimBlock>>>(n, dA, prev_dA);
         cudaDeviceSynchronize();
 
@@ -175,9 +182,13 @@ int main(int argc, char** argv) {
     }
 
     verification<<<1,1>>>(prev_dA,n);
+    cudaEventRecord(stop, 0);
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
+    cudaEventElapsedTime(&time, start, stop);
+
 
     //print result
+    printf ("Time for the kernel: %f ms\n", time);
     printf("verisum all %f\n", array[0]);
     printf("verification n/2 %f\n", array[1]);
     printf("verification A[37][47] %f\n", array[2]);
