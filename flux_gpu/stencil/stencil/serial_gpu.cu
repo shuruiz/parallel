@@ -174,11 +174,7 @@ int main(int argc, char** argv) {
 
     for(int episode =0; episode<t; episode++){
         // printf("loop %d\n", episode );
-<<<<<<< HEAD
-        calc<<<1, 1>>>(n, dA, prev_dA);
-=======
         serial_calc<<<1, 1>>>(n, dA, prev_dA);
->>>>>>> 80039195cea374eefa28ce02089aa186489d45f4
         cudaDeviceSynchronize();
 
         double *tem_a = dA;
