@@ -48,9 +48,10 @@ void serial_calc(int n, double *A, double *prev_A){
             if(i==0 || i==n-1 || j==0 || j==n-1){
                 A[i*n+j] = prev_A[i*n+ j];
             }
-            double candidates[] ={A[(i+1)*n+ (j+1)], A[(i+1)*n +(j-1)], A[(i-1)*n + j-1], A[(i-1)*n + j+1]};
+            else{
+                double candidates[] ={A[(i+1)*n+ (j+1)], A[(i+1)*n +(j-1)], A[(i-1)*n + j-1], A[(i-1)*n + j+1]};
 
-            A[i*n+j] = prev_A[i*n+j] + get2ndMin(candidates);
+                A[i*n+j] = prev_A[i*n+j] + get2ndMin(candidates);
         }
     // printf("i %d\n", i);
 

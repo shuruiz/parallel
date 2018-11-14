@@ -197,6 +197,7 @@ int main(int argc, char** argv) {
     }
 
     reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out);
+    cudaDeviceSynchronize();
     cudaEventRecord(stop, 0);
     
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
