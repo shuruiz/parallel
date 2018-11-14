@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
     double **array;
     double *result; 
     int size = (N) * sizeof(double);
-    array =(double *)malloc(size);
+    array =(double **)malloc(size);
 
     int size_result = 3* sizeof(double);
     result = (double *)malloc(size_result);
