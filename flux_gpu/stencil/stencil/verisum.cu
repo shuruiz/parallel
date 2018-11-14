@@ -142,7 +142,9 @@ int main(int argc, char** argv) {
 
     double *array;
     double *sum;
+    int step = n/THREADS_PER_DIM; 
     int size = (N) * sizeof(double);
+
     int g_size = (step*step) * sizeof(double); 
     array =(double *)malloc(size);
     sum = (double *)malloc(g_size);
@@ -166,7 +168,6 @@ int main(int argc, char** argv) {
     double *dA;
     double *prev_dA;
     double *g_out;
-    int step = n/THREADS_PER_DIM; 
     
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
