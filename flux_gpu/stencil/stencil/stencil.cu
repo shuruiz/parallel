@@ -162,7 +162,10 @@ int main(int argc, char** argv) {
         // printf("loop %d\n", episode );
         calc<<<dimGrid, dimBlock>>>(n, dA, prev_dA);
         cudaDeviceSynchronize();
-        prev_dA = dA;  
+
+        double *tem_a = dA;
+        dA = prev_dA;
+        prev_dA = tem_a;  
     }
     verification<<<1,1>>>(prev_dA,n);
     cudaEventRecord(stop, 0);
@@ -178,6 +181,7 @@ int main(int argc, char** argv) {
 
     //free memory
     free(array);
+    free(tem_a);
     cudaFree(dA);
     cudaFree(prev_dA);
     return 0;
