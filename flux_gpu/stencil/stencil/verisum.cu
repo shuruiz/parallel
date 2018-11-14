@@ -89,23 +89,23 @@ __global__ void reduce(double *g_idata, double *g_odata) {
 
 
 
-__global__
-void verification(double *A, int n){
-    int j = threadIdx.y + blockIdx.y * blockDim.y; 
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
+// __global__
+// void verification(double *A, int n){
+//     int j = threadIdx.y + blockIdx.y * blockDim.y; 
+//     int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-    sum += A[i*n+j];
-    __syncthreads();
+//     sum += A[i*n+j];
+//     __syncthreads();
 
-    // A[0] = sum;
-    double v2, v3; 
-    int fl = floor((double)n/2);
-    v2 = A[fl*n+fl];
-    v3 = A[37*n+47];
-    // __syncthreads()
-    A[1] = v2;
-    A[2] = v3; 
-}
+//     // A[0] = sum;
+//     double v2, v3; 
+//     int fl = floor((double)n/2);
+//     v2 = A[fl*n+fl];
+//     v3 = A[37*n+47];
+//     // __syncthreads()
+//     A[1] = v2;
+//     A[2] = v3; 
+// }
 
 
 double verisum_all(int n, double *A){
