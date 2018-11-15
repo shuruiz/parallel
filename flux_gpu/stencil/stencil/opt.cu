@@ -1,11 +1,18 @@
 //
-//  stencil main program
-//  using CUDA to do parallel computing of stencil
-//  do t repeated run
-//  do it for n = 500, 1000, 20000 and  t = 10
-//  Created by Ethan Zhang on 11/8/18.
+
 //  Copyright © 2018 Ethan Zhang. All rights reserved.
-//
+
+
+
+/////// READ BELOW FIRST///// 
+/// Ethan Zhang, shuruiz@umich.edu
+/////////////////////////////////////////// Aditional information below!!!!!!!//////////////
+/////  I did some modification on the number of threads per block dimension to do better reduce.
+/////  In my report, I use <25, 25> threads per block
+/////  In this script, I use a <32, 32> to do reduce to make the code more concise.
+/////  The performance is the same as the result in my report. 
+///// And in this modified version,  I also print out the performance directly. 
+
 
 
 #include <iostream>
@@ -17,11 +24,6 @@
 #include <ctime>
 
 #define THREADS_PER_DIM 32
-// #define TASKS_PER_THREADS 50
-// #define BLOCKS 32
-// #define N 1000*1000
-// #define RADIUS  1001
-// #define TASKS 
 using namespace std;
 
 __device__
@@ -194,10 +196,12 @@ int main(int argc, char** argv) {
     int t  = 10;
     dim3 dimBlock(THREADS_PER_DIM, THREADS_PER_DIM);
     dim3 dimGrid(ceil((double)n/dimBlock.x), ceil((double)n/ dimBlock.y));
-    cudaEvent_t start, stop;
-    float time;
+    cudaEvent_t start, stop, stop1, stop2;
+    float time, time1, time2;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
+    cudaEventCreate(&stop1);
+    cudaEventCreate(&stop2);
 
     // double v1 =0.0; 
     
@@ -212,29 +216,35 @@ int main(int argc, char** argv) {
         dA = prev_dA;
         prev_dA = tem_a;  
     }
-    
-    
+    cudaEventRecord(stop1, 0);
+
     reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, n, g_out); //better verification
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
+    
+
+    verification<<<1,1>>>(prev_dA,n); //  para1 verification 
+    cudaEventRecord(stop2, 0);
+
     cudaEventElapsedTime(&time, start, stop);
+    cudaEventElapsedTime(&time1, start, stop1);
+    cudaEventElapsedTime(&time2, start, stop2);
+
+
+    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
 
     cudaMemcpy(sum,g_out, g_size, cudaMemcpyDeviceToHost);
     double verisum=0;
     for(int i=0; i<step*step; i++){
         verisum += sum[i];
     }
-
-    verification<<<1,1>>>(prev_dA,n); //  para1 verification 
-    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
         // print result
-    printf ("Time for the kernel: %f ms\n", time);
-    printf("verisum all %f\n", verisum);
-    printf("verisum para1", array[0]);
+    printf ("Time for the parallel_1 algorithm: %f ms\n", time1+(time2-time));
+    printf ("Time for the parallel_2 algorithm: %f ms\n", time);
+    printf("para2 verisum  %f\n", verisum);
+    printf("para1 verisum", array[0]);
     printf("verification n/2 %f\n", array[1]);
     printf("verification A[37][47] %f\n", array[2]);
-
-
 
 
 
