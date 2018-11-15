@@ -1,0 +1,13 @@
+I ran on:
+nyx7512
+size N:1000000
+init verisum all 2001958.317518
+init verification n/2 1.198165
+init verification A[37][47] 1.677777
+=====================VERIFICATION========================
+Time for the parallel_2 algorithm: 1.041408 ms
+para1 verisum 492255425.965044
+para2 verisum  492255425.965033
+verification n/2 571.906258
+verification A[37][47] 541.702793
+=======================END OF VERIFICATION=================
