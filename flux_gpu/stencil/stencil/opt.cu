@@ -196,7 +196,7 @@ int main(int argc, char** argv) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventCreate(&stop1);
-    cudaEventCreate(&stop2);
+    
 
     // double v1 =0.0; 
     
@@ -219,7 +219,9 @@ int main(int argc, char** argv) {
     cudaDeviceSynchronize();
     
     cudaEvent_t start2, stop2;
-    udaEventRecord(start2, 0);
+    cudaEventCreate(&stop2);
+    cudaEventCreate(&start2);
+    cudaEventRecord(start2, 0);
     verification<<<1,1>>>(prev_dA,n); //  parallel_1 algorithm verification 
     cudaEventRecord(stop2, 0);
 
