@@ -191,11 +191,12 @@ int main(int argc, char** argv) {
     int t  = 10;
     dim3 dimBlock(THREADS_PER_DIM, THREADS_PER_DIM);
     dim3 dimGrid(ceil((double)n/dimBlock.x), ceil((double)n/ dimBlock.y));
-    cudaEvent_t start, stop, stop1;
+    cudaEvent_t start, stop, stop1, stop2;
     float time, time1, time2;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventCreate(&stop1);
+    cudaEventCreate(&stop2);
     
 
     // double v1 =0.0; 
@@ -218,16 +219,13 @@ int main(int argc, char** argv) {
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     
-    cudaEvent_t start2, stop2;
-    cudaEventCreate(&stop2);
-    cudaEventCreate(&start2);
-    cudaEventRecord(start2, 0);
+    
     verification<<<1,1>>>(prev_dA,n); //  parallel_1 algorithm verification 
     cudaEventRecord(stop2, 0);
 
     cudaEventElapsedTime(&time, start, stop);
     cudaEventElapsedTime(&time1, start, stop1);
-    cudaEventElapsedTime(&time2, start2, stop2);
+    cudaEventElapsedTime(&time2, start, stop2);
 
 
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
@@ -239,7 +237,7 @@ int main(int argc, char** argv) {
     }
         // print result
     printf("=====================VERIFICATION========================\n");
-    printf ("Time for the parallel_1 algorithm: %f ms\n", time1+time2);
+    printf ("Time for the parallel_1 algorithm: %f ms\n", time2);
     printf ("Time for the parallel_2 algorithm: %f ms\n", time);
     printf("para1 verisum %f\n", array[0]);
     printf("para2 verisum  %f\n", verisum);
