@@ -65,15 +65,20 @@ void calc(int n, double *dA, double *prev_dA){
 //     printf("exec. in parent node\n");
 // }
 
-__global__ void reduce(double *g_idata, int step, double *g_odata) {
+__global__ void reduce(double *g_idata, int step, int n, double *g_odata) {
     extern __shared__ double sdata[];
     // each thread loads one element from global to shared mem
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
     unsigned int tid = threadIdx.x *blockDim.x +threadIdx.y;
 
-    unsigned int i = (blockIdx.x *blockDim.x + blockIdx.y)*(blockDim.x*2) + tid; // global index, threads in previous blocks and 
-    sdata[tid] = g_idata[i];
+    unsigned int i = (blockIdx.x * step + blockIdx.y)*(blockDim.x*blockDim.y) + tid; // global index, threads in previous blocks and 
+    if(i<n*n){
+        sdata[tid] = g_idata[i];
+    }
+    else{
+        sdata[tid] = 0.0;
+    }
     __syncthreads();
     // do reduction in shared mem, sum all threads in block
     for (unsigned int s=1;s<blockDim.x *blockDim.y; s*=2) {
@@ -213,7 +218,7 @@ int main(int argc, char** argv) {
     
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
     
-    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, g_out); //better verification
+    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, n, g_out); //better verification
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     cudaEventElapsedTime(&time, start, stop);
