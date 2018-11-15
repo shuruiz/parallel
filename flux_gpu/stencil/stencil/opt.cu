@@ -70,19 +70,20 @@ __global__ void reduce(double *g_idata, double *g_odata) {
     // each thread loads one element from global to shared mem
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
-    unsigned int tid = threadIdx.x;
-    unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
-    sdata[tid] = g_idata[i] + g_idata[i+blockDim.x];
+    unsigned int tid = threadIdx.x *blockDim.x +threadIdx.y;
+
+    unsigned int i = (blockIdx.x *blockDim.x + blockIdx.y)*(blockDim.x*2) + tid; // global index, threads in previous blocks and 
+    sdata[tid] = g_idata[i];
     __syncthreads();
     // do reduction in shared mem
-    for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
-    if (tid < s) {
-        sdata[tid] += sdata[tid + s];
-    }
-    __syncthreads();
+    for (unsigned int s=1;s<blockDim.x *blockDim.y; s++) {
+        if (tid < s) {
+            sdata[tid] += sdata[tid + 1];
+        }
+        __syncthreads();
     }
     // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+    if (tid == 0) g_odata[blockIdx.x *blockDim.x + blockIdx.y] = sdata[0];
 }
 
 
@@ -139,24 +140,25 @@ int main(int argc, char** argv) {
     // 1d stencil
 
     double *array;
-    // double *sum;
-    // int step = n/THREADS_PER_DIM; 
+    double *sum;
+    int step = n/THREADS_PER_DIM; 
     int size = (N) * sizeof(double);
 
-    // int g_size = (step*step) * sizeof(double); 
+    int g_size = (step*step) * sizeof(double); 
     array =(double *)malloc(size);
-    // sum = (double *)malloc(step);
+    sum = (double *)malloc(g_size);
 
     for(int i =0; i<n;i++){
         for(int j =0; j<n; j++){
             array[i*n+j] = pow(1+cos(2*i)+sin(j),2);
         }
     }
-    // for(int i=0; i<step; i++){
-    //     for(int j=0; j<step; j++){
-    //         sum[i*n+j] =0.0;
-    //     }
-    // }
+
+    for(int i=0; i<step; i++){
+        for(int j=0; j<step; j++){
+            sum[i*step+j] =0.0;
+        }
+    }
 
 
     //verify initialization results
@@ -171,17 +173,17 @@ int main(int argc, char** argv) {
 
     double *dA;
     double *prev_dA;
-    // double *g_out;
+    double *g_out;
     
     // allocate memory on device
     cudaMalloc((void **)&dA, size);
     cudaMalloc((void **)&prev_dA, size);
-    // cudaMalloc((void **)&g_out, size);
+    cudaMalloc((void **)&g_out, g_size);
 
     // Copy inputs to device
     cudaMemcpy(dA, array, size, cudaMemcpyHostToDevice);
     cudaMemcpy(prev_dA, array, size, cudaMemcpyHostToDevice);
-    // cudaMemcpy(g_out, sum, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(g_out, sum, g_size, cudaMemcpyHostToDevice);
 
     //launch kernal on device
     int t  = 10;
@@ -207,20 +209,23 @@ int main(int argc, char** argv) {
     }
     
 
-    verification<<<1,1>>>(prev_dA,n); //  para1 verification 
+    // verification<<<1,1>>>(prev_dA,n); //  para1 verification 
+    
+    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
+    
+    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out); //better verification
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
-    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
     cudaEventElapsedTime(&time, start, stop);
-     // reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out); //better verification
-    // cudaMemcpy(sum,g_out, size, cudaMemcpyDeviceToHost);
-    // double verisum=0;
-    // for(int i=0; i<step*step; i++){
-    //     verisum += sum[i];
-    // }
-        //print result
+
+    cudaMemcpy(sum,g_out, g_size, cudaMemcpyDeviceToHost);
+    double verisum=0;
+    for(int i=0; i<step*step; i++){
+        verisum += sum[i];
+    }
+        // print result
     printf ("Time for the kernel: %f ms\n", time);
-    printf("verisum all %f\n", array[0]);
+    printf("verisum all %f\n", verisum);
     printf("verification n/2 %f\n", array[1]);
     printf("verification A[37][47] %f\n", array[2]);
 
