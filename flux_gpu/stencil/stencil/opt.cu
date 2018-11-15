@@ -16,7 +16,7 @@
 #include "cuda.h"
 #include <ctime>
 
-#define THREADS_PER_DIM 25
+#define THREADS_PER_DIM 32
 // #define TASKS_PER_THREADS 50
 // #define BLOCKS 32
 // #define N 1000*1000
@@ -65,7 +65,7 @@ void calc(int n, double *dA, double *prev_dA){
 //     printf("exec. in parent node\n");
 // }
 
-__global__ void reduce(double *g_idata, double *g_odata) {
+__global__ void reduce(double *g_idata, int step, double *g_odata) {
     extern __shared__ double sdata[];
     // each thread loads one element from global to shared mem
     // perform first level of reduction,
@@ -75,15 +75,15 @@ __global__ void reduce(double *g_idata, double *g_odata) {
     unsigned int i = (blockIdx.x *blockDim.x + blockIdx.y)*(blockDim.x*2) + tid; // global index, threads in previous blocks and 
     sdata[tid] = g_idata[i];
     __syncthreads();
-    // do reduction in shared mem
-    for (unsigned int s=1;s<blockDim.x *blockDim.y; s++) {
-        if (tid < s) {
-            sdata[tid] += sdata[tid + 1];
+    // do reduction in shared mem, sum all threads in block
+    for (unsigned int s=1;s<blockDim.x *blockDim.y; s*=2) {
+        if (tid % (2*s) == 0) {
+            sdata[tid] += sdata[tid + s];
         }
         __syncthreads();
     }
     // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x *blockDim.x + blockIdx.y] = sdata[0];
+    if (tid == 0) g_odata[blockIdx.x * step + blockIdx.y] = sdata[0];
 }
 
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 
     double *array;
     double *sum;
-    int step = n/THREADS_PER_DIM; 
+    int step = ceil((double)n/THREADS_PER_DIM); //blocks
     int size = (N) * sizeof(double);
 
     int g_size = (step*step) * sizeof(double); 
@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
     //launch kernal on device
     int t  = 10;
     dim3 dimBlock(THREADS_PER_DIM, THREADS_PER_DIM);
-    dim3 dimGrid(n/THREADS_PER_DIM, n/ THREADS_PER_DIM);
+    dim3 dimGrid(ceil((double)n/dimBlock.x), ceil((double)n/ dimBlock.y));
     cudaEvent_t start, stop;
     float time;
     cudaEventCreate(&start);
@@ -213,7 +213,7 @@ int main(int argc, char** argv) {
     
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
     
-    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,g_out); //better verification
+    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, g_out); //better verification
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     cudaEventElapsedTime(&time, start, stop);
@@ -235,10 +235,10 @@ int main(int argc, char** argv) {
 
     //free memory
     free(array);
-    // free(sum);
+    free(sum);
     cudaFree(dA);
     cudaFree(prev_dA);
-    // cudaFree(g_out);
+    cudaFree(g_out);
 
     return 0;
 }
