@@ -51,25 +51,17 @@ void calc(int n, double *dA, double *prev_dA){
     if(i ==0 || i ==n-1 || j ==0 || j ==n-1){
         dA[i*n+j] = prev_dA[i*n+j];
     }else{
-        // tmp[lindex_x-1][lindex_y-1] = A[i-1][j-1]
         double candidates[] = {prev_dA[(i+1)*n+(j+1)], prev_dA[(i+1)*n+(j-1)],prev_dA[(i-1)*n+(j-1)],prev_dA[(i-1)*n+(j+1)]};
         dA[i*n+j] = prev_dA[i*n+j] + get2ndMin(candidates);
     }
     __syncthreads();
-    // printf("exec. in block%d, threads%d, i%d, j%d, \n", blockIdx.x, threadIdx.x, i, j);
+    
 }
 
-//parent node
-// __global__ void stencil(double *dA,int n){
-
-//     calc<<<BLOCKS, THREADS_PER_DIM>>>(n, dA); 
-//     __syncthreads();
-//     printf("exec. in parent node\n");
-// }
-
-__global__ void reduce(double *g_idata, int step, int n, double *g_odata) {
+//parallel_2 algorithm verification
+__global__ 
+void reduce(double *g_idata, int step, int n, double *g_odata) {
     extern __shared__ double sdata[];
-    // each thread loads one element from global to shared mem
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
     unsigned int tid = threadIdx.x *blockDim.x +threadIdx.y;
@@ -95,7 +87,7 @@ __global__ void reduce(double *g_idata, int step, int n, double *g_odata) {
 
 
 
-
+//parallel_1 algorithm verification
 __global__
 void verification(double *A, int n){
     double v1, v2,v3;
@@ -115,6 +107,8 @@ void verification(double *A, int n){
     A[2] = v3; 
 }
 
+
+// serial verification below
 double verisum_all(int n, double *A){
     double sum=0.0;
     for(int i = 0; i<n; i++){
@@ -136,15 +130,14 @@ double value_37_47(int n, double *A){
     return result;
 }
 
+
+
 int main(int argc, char** argv) {
-    // initialize below
+
     int n = atoi(argv[1]);
 
     int N  = n*n;
-    printf("size N%d\n",N);
-
-    // initialize below
-    // 1d stencil
+    printf("size N:%d\n",N);
 
     double *array;
     double *sum;
@@ -218,17 +211,18 @@ int main(int argc, char** argv) {
     }
     cudaEventRecord(stop1, 0);
 
-    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, n, g_out); //better verification
+    //parallel_2 algorithm verification
+    reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, n, g_out); 
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     
 
-    verification<<<1,1>>>(prev_dA,n); //  para1 verification 
+    verification<<<1,1>>>(prev_dA,n); //  parallel_1 algorithm verification 
     cudaEventRecord(stop2, 0);
 
     cudaEventElapsedTime(&time, start, stop);
     cudaEventElapsedTime(&time1, start, stop1);
-    cudaEventElapsedTime(&time2, start, stop2);
+    cudaEventElapsedTime(&time2, stop, stop2);
 
 
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
@@ -239,12 +233,14 @@ int main(int argc, char** argv) {
         verisum += sum[i];
     }
         // print result
-    printf ("Time for the parallel_1 algorithm: %f ms\n", time1+(time2-time));
+    printf("=====================VERIFICATION========================\n");
+    printf ("Time for the parallel_1 algorithm: %f ms\n", time1+time2);
     printf ("Time for the parallel_2 algorithm: %f ms\n", time);
+    printf("para1 verisum %f\n", array[0]);
     printf("para2 verisum  %f\n", verisum);
-    printf("para1 verisum", array[0]);
     printf("verification n/2 %f\n", array[1]);
     printf("verification A[37][47] %f\n", array[2]);
+    printf("=======================END OF VERIFICATION=================\n");
 
 
 
