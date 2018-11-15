@@ -213,10 +213,6 @@ int main(int argc, char** argv) {
         prev_dA = tem_a;  
     }
     
-
-    // verification<<<1,1>>>(prev_dA,n); //  para1 verification 
-    
-    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
     
     reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, n, g_out); //better verification
     cudaEventRecord(stop, 0);
@@ -228,9 +224,13 @@ int main(int argc, char** argv) {
     for(int i=0; i<step*step; i++){
         verisum += sum[i];
     }
+
+    verification<<<1,1>>>(prev_dA,n); //  para1 verification 
+    cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
         // print result
     printf ("Time for the kernel: %f ms\n", time);
     printf("verisum all %f\n", verisum);
+    printf("verisum para1", array[0]);
     printf("verification n/2 %f\n", array[1]);
     printf("verification A[37][47] %f\n", array[2]);
 
