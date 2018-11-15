@@ -39,4 +39,9 @@ Intel icpc:
 https://software.intel.com/en-us/node/522357 
 
 
+NVIDIA nvcc:
+
+https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html
+
+
 Many thanks to Prof. Quentin Stout for computing resources allocation and for providing lectures (2018 fall EECS 587 parallel computing). 
