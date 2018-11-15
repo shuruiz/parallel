@@ -1,18 +1,21 @@
 //
 //  Copyright © 2018 Ethan Zhang. All rights reserved.
 
-/////// READ BELOW FIRST///// 
+// ====================READ BELOW FIRST ==================
+
+
 /// Ethan Zhang, shuruiz@umich.edu
 //====================================================================
 /////////////////////////////////////////// Aditional information below!!!!!!!//////////////
+
 /////  I did some modification on the number of threads per block dimension to do better reduce.
 /////  In my report, I use <25, 25> threads per block
-/////  In this script, I use a <32, 32> to do reduce to make the code more concise.
-/////  The performance is the same as the result in my report. 
+/////  In this script, I use a <32, 32> to do reduce to make the code more concise and easier to understand. 
+/////  The performance is in the same level as the result in my report. 
 ///// And in this modified version,  I also print out the performance directly. 
-
+//===========================COMPILE THE CODE=========================
 // use cuda/9.1 and this command the compile on flux: nvcc -arch=sm_35 -o stencil opt.cu -rdc=true -lcudadevrt
-// =================================================
+// ===================================================================
 
 
 
@@ -191,12 +194,14 @@ int main(int argc, char** argv) {
     int t  = 10;
     dim3 dimBlock(THREADS_PER_DIM, THREADS_PER_DIM);
     dim3 dimGrid(ceil((double)n/dimBlock.x), ceil((double)n/ dimBlock.y));
-    cudaEvent_t start, stop, stop1, stop2;
-    float time, time1, time2;
+    cudaEvent_t start, stop;
+    // cudaEvent_t stop1, stop2;
+    float time;
+    // float  time1, time2;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    cudaEventCreate(&stop1);
-    cudaEventCreate(&stop2);
+    // cudaEventCreate(&stop1);
+    // cudaEventCreate(&stop2);
     
 
     // double v1 =0.0; 
@@ -212,20 +217,20 @@ int main(int argc, char** argv) {
         dA = prev_dA;
         prev_dA = tem_a;  
     }
-    cudaEventRecord(stop1, 0);
+    // cudaEventRecord(stop1, 0);
 
     //parallel_2 algorithm verification
     reduce<<<dimGrid,dimBlock, dimBlock.x *dimBlock.y *sizeof(double)>>>(prev_dA,step, n, g_out); 
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     
-    
-    verification<<<1,1>>>(prev_dA,n); //  parallel_1 algorithm verification 
-    cudaEventRecord(stop2, 0);
+    //  parallel_1 algorithm verification 
+    verification<<<1,1>>>(prev_dA,n); 
+    // cudaEventRecord(stop2, 0);
 
     cudaEventElapsedTime(&time, start, stop);
-    cudaEventElapsedTime(&time1, start, stop1);
-    cudaEventElapsedTime(&time2, start, stop2);
+    // cudaEventElapsedTime(&time1, start, stop1);
+    // cudaEventElapsedTime(&time2, start, stop2);
 
 
     cudaMemcpy(array,prev_dA, size, cudaMemcpyDeviceToHost);
@@ -237,7 +242,7 @@ int main(int argc, char** argv) {
     }
         // print result
     printf("=====================VERIFICATION========================\n");
-    printf ("Time for the parallel_1 algorithm: %f ms\n", time2);
+    // printf ("Time for the parallel_1 algorithm: %f ms\n", time2);
     printf ("Time for the parallel_2 algorithm: %f ms\n", time);
     printf("para1 verisum %f\n", array[0]);
     printf("para2 verisum  %f\n", verisum);
