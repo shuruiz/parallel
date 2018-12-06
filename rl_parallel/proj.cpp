@@ -12,6 +12,24 @@
 #define THREADS_PER_DIM 32
 using namespace std;
 
+__device__
+void one_step_q(double *d_Theta, double *d_prevTheta, int max_T){
+	int step =0;
+	double *target_Theta = d_Theta; 
+	// initialize gradient 
+	//code below
+
+
+
+	// initialize state
+	//code below
+
+
+	while(step<max_T){
+		
+	}
+
+}
 
 int main(int argc, char** argv){
 
