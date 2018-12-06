@@ -1,6 +1,5 @@
 // calculate neural weights in real time. 
-
-
+// serial in 50 mins, pytorch 5 mins 
 
 #include <iostream>
 #include <stdlib.h>
@@ -49,7 +48,7 @@ int main(int argc, char** argv){
 	clock_t endTime = clock();
 	clock_t clockTicksTaken = endTime - startTime;
 	double timeInSeconds = clockTicksTaken / (double) CLOCKS_PER_SEC;
-	
+
 	free(A);free(B);
 	free(C);
 	return 0;
