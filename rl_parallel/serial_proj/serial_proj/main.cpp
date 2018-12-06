@@ -47,6 +47,8 @@ int main(int argc, char** argv){
                 C[j] += A[index];
             }
         }
+        if(j%1000==0){
+            cout<<j<<endl;}
     }
     clock_t endTime = clock();
     clock_t clockTicksTaken = endTime - startTime;
