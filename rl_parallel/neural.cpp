@@ -1,5 +1,6 @@
 // calculate neural weights in real time. 
 // serial in 50 mins, pytorch 5 mins 
+// parallel target, solve in less than 10 ms - real time 
 
 #include <iostream>
 #include <stdlib.h>
@@ -10,6 +11,11 @@
 
 #define THREADS_PER_DIM 32
 using namespace std;
+
+__global__
+void mapping(double *d_A, int *d_B, double *d_C){
+	
+}
 
 int main(int argc, char** argv){
 	// int m= atoi(argv[1]);
@@ -52,4 +58,6 @@ int main(int argc, char** argv){
 	free(A);free(B);
 	free(C);
 	return 0;
+
+
 }
