@@ -1,3 +1,5 @@
+// dynamic reduction on weights mapping 
+
 // calculate neural weights in real time. 
 // serial in 50 mins, pytorch 5 mins 
 // parallel target, solve in less than 10 ms - real time 
@@ -13,32 +15,9 @@
 using namespace std;
 
 
-__device__
-struct RT
-{
-	int idx;
-    double ele;
-};
-
-__device__
-RT router(double *dA, int *dB, int g_idx){
-	// @b_ele: element value in b, which is also C index
-	int c_index = dB[g_idx];
-	RT result = {c_index, dA[g_idx]};
-	return result; 
-}
-
 __global__
-void mapping(double *d_A, int *d_B, double *d_C){
-	int block_total = blockDim.x * blockDim.y; 
-	int above_total = block_total * gridDim.y; 
-	int row_prev_total = blockIdx.y * block_total;  
-	int g_idx = above_total + row_prev_total + threadIdx.y * blockDim.y +threadIdx.x;
+void dynamic(double *d_A, int *d_B, double *d_C){
 
-	//update global C asynchronously 
-	RT result = router(d_A, d_B, g_idx); 
-	d_C[result.idx] += result.ele;
-	__syncthreads();
 }
 
 int main(int argc, char** argv){
@@ -51,7 +30,7 @@ int main(int argc, char** argv){
 	int size_b = m*sizeof(int);
 
 	A = (double *)malloc(size_a);
-	B = (int *)malloc(size_b);
+	B = (int *)malloc(size_b)
 
 
 	// init below 
@@ -93,7 +72,9 @@ int main(int argc, char** argv){
     cudaEventRecord(start, 0);
 
     // launch kernal on GPU
-    mapping<<<dimGrid,dimBlock>>>(dA,dB,dC); 
+    dynamic<<<dimGrid,dimBlock>>>(dA,dB,dC); 
+
+
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     cudaEventElapsedTime(&time, start, stop);
