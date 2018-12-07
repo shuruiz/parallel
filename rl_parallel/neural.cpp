@@ -8,6 +8,7 @@
 #include <ctime>
 #include <cuda.h>
 #include <float.h>
+#include <algorithm>
 
 #define THREADS_PER_DIM 32
 using namespace std;
