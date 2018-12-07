@@ -12,5 +12,5 @@
 echo "I ran on:"
 cat $PBS_NODEFILE
 # Let PBS handle your output
-/home/shuruiz/eecs_parallel/parallel/rl_parallel
+cd /home/shuruiz/eecs_parallel/parallel/rl_parallel
 ./mapping 4000000
