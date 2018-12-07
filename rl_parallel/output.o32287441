@@ -1,0 +1,4 @@
+I ran on:
+nyx7507
+/var/spool/torque/mom_priv/jobs/32287441.nyx.arc-ts.umich.edu.SC: line 15: /home/shuruiz/eecs_parallel/parallel/rl_parallel: Is a directory
+/var/spool/torque/mom_priv/jobs/32287441.nyx.arc-ts.umich.edu.SC: line 16: ./mapping: No such file or directory
