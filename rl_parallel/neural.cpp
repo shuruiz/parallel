@@ -12,8 +12,15 @@
 #define THREADS_PER_DIM 32
 using namespace std;
 
+__device__
+double router(double *A, int b_ele){
+	// @b_ele: element value in b, which is also C index
+	return A[b_ele]; 
+}
+
 __global__
-void mapping(double *d_A, int *d_B, double *d_C){
+void mapping(double *d_A, int *d_B, double *d_C, int len_c){
+	// masters-workers architecture 
 	
 }
 
