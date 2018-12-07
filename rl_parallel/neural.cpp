@@ -12,21 +12,38 @@
 #define THREADS_PER_DIM 32
 using namespace std;
 
+
 __device__
-double router(double *A, int b_ele){
+struct RT
+{
+	int idx;
+    double ele;
+};
+
+__device__
+RT router(double *dA, int *d_B, int g_idx){
 	// @b_ele: element value in b, which is also C index
-	return A[b_ele]; 
+	int c_index = d_B[g_idx];
+	RT result = {c_index, A[g_idx]};
+	return result; 
 }
 
 __global__
-void mapping(double *d_A, int *d_B, double *d_C, int len_c){
-	// masters-workers architecture 
-	
+void mapping(double *d_A, int *d_B, double *d_C){
+	block_total = blockDim.x * blockDim.y; 
+	above_total = block_total * gridDim.y; 
+	row_prev_total = blockIdx.y * block_total;  
+	int g_idx = above_total + row_prev_total + threadIdx.y * blockDim.y +threadIdx.x;
+
+	//update global C asynchronously 
+	RT result = router(d_A, d_B, g_idx); 
+	d_C[result[0]] += result[1];
+	__syncthreads();
 }
 
 int main(int argc, char** argv){
-	// int m= atoi(argv[1]);
-	int m =1000000;
+	int m= atoi(argv[1]);
+	// int m =1000000;
 	//n = atoi(argv[2]);
 	double *A,*C;
 	int *B; // index
@@ -47,23 +64,48 @@ int main(int argc, char** argv){
 	int size_c =  len_c *sizeof(double);
 	C = (double *)malloc(size_c);
 
-
-	clock_t startTime = clock();
+	// clock_t startTime = clock();
 	for(int j=0; j<len_c;j++){
-		C[j]=0
-		for(int k=0; k<m; k++){
-			int index =B[k];
-			if(index ==j){
-				C[j] += A[index];
-			}
-		}
+		C[j]=0; // init C
 	}
-	clock_t endTime = clock();
-	clock_t clockTicksTaken = endTime - startTime;
-	double timeInSeconds = clockTicksTaken / (double) CLOCKS_PER_SEC;
+	double *dA, *dC;
+	int *dB; 
 
-	free(A);free(B);
+	// allocate memory on device
+    cudaMalloc((void **)&dA, size_a);
+    cudaMalloc((void **)&dB, size_b);
+    cudaMalloc((void **)&dC, size_c);
+    // Copy inputs to device
+    cudaMemcpy(dA, A, size_a, cudaMemcpyHostToDevice);
+    cudaMemcpy(dB, B, size_b, cudaMemcpyHostToDevice);
+    cudaMemcpy(dC, C, size_c, cudaMemcpyHostToDevice);
+
+    int n_ele = m;
+
+    dim3 dimBlock(THREADS_PER_DIM, THREADS_PER_DIM);
+    dim3 dimGrid(ceil((double)n_ele/dimBlock.x), ceil((double)n_ele/ dimBlock.y));
+
+    //timer 
+    cudaEvent_t start, stop;
+    float time;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);    
+    cudaEventRecord(start, 0);
+
+    // launch kernal on GPU
+    mapping<<<dimGrid,dimBlock>>>(dA,dB,dC); 
+    cudaEventRecord(stop, 0);
+    cudaDeviceSynchronize();
+    cudaEventElapsedTime(&time, start, stop);
+    cudaMemcpy(C,dC, size_c, cudaMemcpyDeviceToHost);
+    printf("runtime for parallel algorithm:%f ms\n", time);
+	free(A);
+	free(B);
 	free(C);
+
+	cudaFree(dA);
+	cudaFree(dB);
+	cudaFree(dC);
 	return 0;
 
 
