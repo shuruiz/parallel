@@ -38,7 +38,8 @@ void mapping(double *d_A, int *d_B, double *d_C){
 
 	//update global C asynchronously 
 	RT result = router(d_A, d_B, g_idx); 
-	d_C[result.idx] += result.ele;
+
+	atomicAdd(d_C+result.idx, result.ele);
 	__syncthreads();
 }
 
@@ -95,6 +96,7 @@ int main(int argc, char** argv){
 
     // launch kernal on GPU
     mapping<<<dimGrid,dimBlock>>>(dA,dB,dC); 
+
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     cudaEventElapsedTime(&time, start, stop);
