@@ -38,8 +38,8 @@ void mapping(double *d_A, int *d_B, double *d_C){
 
 	//update global C asynchronously 
 	RT result = router(d_A, d_B, g_idx); 
-	
-	double atomicAdd(d_C[result.idx], result.ele);
+
+	double atomicAdd(d_C+result.idx, result.ele);
 	__syncthreads();
 }
 
