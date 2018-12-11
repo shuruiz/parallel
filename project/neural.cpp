@@ -105,9 +105,10 @@ int main(int argc, char** argv){
 
     // launch kernal on GPU
     mapping<<<dimGrid,dimBlock>>>(dA,dB,dC,m); 
-
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
+    
+    
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(C,dC, size_c, cudaMemcpyDeviceToHost);
     printf("runtime for parallel algorithm:%f ms\n", time);
