@@ -1,0 +1,16 @@
+#!/bin/sh
+#PBS -S /bin/sh
+#PBS -N output
+#PBS -A eecs587f18_fluxg
+#PBS -l qos=flux
+
+#PBS -l nodes=1:gpus=1,mem=200mb,walltime=00:05:00
+#PBS -q fluxg
+#PBS -m abe
+#PBS -j oe
+#PBS -V
+echo "I ran on:"
+cat $PBS_NODEFILE
+# Let PBS handle your output
+cd /home/shuruiz/eecs_parallel/parallel/rl_parallel
+./mapping 4000000
