@@ -1,0 +1,5 @@
+I ran on:
+nyx7501
+m: 1000000
+len_C 7999
+runtime for parallel algorithm:0.002176 ms
