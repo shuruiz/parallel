@@ -44,12 +44,19 @@ void mapping(double *d_A, int *d_B, double *d_C,int m){
 	// int row_prev_total = blockIdx.y * block_total;  
 	int g_idx = total_threads_prev_blocks + threadIdx.x * blockDim.y + threadIdx.y;
 
+<<<<<<< HEAD
 	if(g_idx<m){
 		int c_index = d_B[g_idx];
 		//get route info 
 		// RT result = router(d_A, d_B, g_idx); 
 		atomicAdd(d_C+c_index, d_A[g_idx]);
 	}
+=======
+	//update global C asynchronously 
+	RT result = router(d_A, d_B, g_idx); 
+
+	atomicAdd(d_C+result.idx, result.ele);
+>>>>>>> e1da9aa0b2ac386fdf0b97a6644ce0e4bcb89577
 	__syncthreads();
 }
 
@@ -104,7 +111,11 @@ int main(int argc, char** argv){
     cudaEventRecord(start, 0);
 
     // launch kernal on GPU
+<<<<<<< HEAD
     mapping<<<dimGrid,dimBlock>>>(dA,dB,dC,m); 
+=======
+    mapping<<<dimGrid,dimBlock>>>(dA,dB,dC); 
+>>>>>>> e1da9aa0b2ac386fdf0b97a6644ce0e4bcb89577
 
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
