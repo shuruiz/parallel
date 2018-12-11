@@ -1,6 +1,8 @@
 // calculate neural weights in real time. 
 // serial in 50 mins, pytorch 5 mins 
 // parallel target, solve in less than 10 ms - real time 
+// compile with 
+//  nvcc -arch=sm_60 -o mapping neural.cu -rdc=true -lcudadevrt
 
 #include <iostream>
 #include <stdlib.h>
@@ -14,31 +16,40 @@
 using namespace std;
 
 
-__device__
-struct RT
-{
-	int idx;
-    double ele;
-};
 
-__device__
-RT router(double *dA, int *dB, int g_idx){
-	// @b_ele: element value in b, which is also C index
-	int c_index = dB[g_idx];
-	RT result = {c_index, dA[g_idx]};
-	return result; 
-}
+// struct RT
+// {
+// 	int idx;
+//     double ele;
+// };
+
+// __device__
+// RT router(double *dA, int *dB, int g_idx){
+// 	// @b_ele: element value in b, which is also C index
+// 	int c_index = dB[g_idx];
+
+// 	RT result = {c_index, dA[g_idx]};
+// 	return result; 
+// }
 
 __global__
-void mapping(double *d_A, int *d_B, double *d_C){
+void mapping(double *d_A, int *d_B, double *d_C,int m){
 	int block_total = blockDim.x * blockDim.y; 
-	int above_total = block_total * gridDim.y; 
-	int row_prev_total = blockIdx.y * block_total;  
-	int g_idx = above_total + row_prev_total + threadIdx.y * blockDim.y +threadIdx.x;
+	// int grid_row_one = block_total * gridDim.y; 
+	int total_block_row_above = blockIdx.x* gridDim.y;
+	int total_block_prev = total_block_row_above +blockIdx.y+1; //id counting from 0
 
-	//update global C asynchronously 
-	RT result = router(d_A, d_B, g_idx); 
-	d_C[result.idx] += result.ele;
+	int total_threads_prev_blocks = block_total * total_block_prev;
+
+	// int row_prev_total = blockIdx.y * block_total;  
+	int g_idx = total_threads_prev_blocks + threadIdx.x * blockDim.y + threadIdx.y;
+
+	if(g_idx<m){
+		int c_index = d_B[g_idx];
+		//get route info 
+		// RT result = router(d_A, d_B, g_idx); 
+		atomicAdd(d_C+c_index, d_A[g_idx]);
+	}
 	__syncthreads();
 }
 
@@ -57,8 +68,8 @@ int main(int argc, char** argv){
 
 	// init below 
 	for(int i =0; i<m; i++){
-		A[i] = rand()%10000;
-		B[i] = rand()%450000;
+		A[i] = rand()%1000000;
+		B[i] = rand()%500000;
 	}
 
 	int len_c = *std::max_element(B,B+m);
@@ -80,11 +91,10 @@ int main(int argc, char** argv){
     cudaMemcpy(dA, A, size_a, cudaMemcpyHostToDevice);
     cudaMemcpy(dB, B, size_b, cudaMemcpyHostToDevice);
     cudaMemcpy(dC, C, size_c, cudaMemcpyHostToDevice);
-
     int n_ele = m;
 
     dim3 dimBlock(THREADS_PER_DIM, THREADS_PER_DIM);
-    dim3 dimGrid(ceil((double)n_ele/dimBlock.x), ceil((double)n_ele/ dimBlock.y));
+    dim3 dimGrid(ceil(((double)sqrt(n_ele))/dimBlock.x), ceil(((double)sqrt(n_ele))/ dimBlock.y));
 
     //timer 
     cudaEvent_t start, stop;
@@ -94,7 +104,8 @@ int main(int argc, char** argv){
     cudaEventRecord(start, 0);
 
     // launch kernal on GPU
-    mapping<<<dimGrid,dimBlock>>>(dA,dB,dC); 
+    mapping<<<dimGrid,dimBlock>>>(dA,dB,dC,m); 
+
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     cudaEventElapsedTime(&time, start, stop);
