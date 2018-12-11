@@ -73,6 +73,8 @@ int main(int argc, char** argv){
 	}
 
 	int len_c = *std::max_element(B,B+m);
+	printf("m: %d\n",m);
+	printf("len_C %d\n",len_c);
 	int size_c =  len_c *sizeof(double);
 	C = (double *)malloc(size_c);
 
