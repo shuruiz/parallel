@@ -107,7 +107,7 @@ int main(int argc, char** argv){
 
     // launch kernal on GPU
     mapping<<<dimGrid,dimBlock>>>(dA,dB,dC,m); 
-
+    //cudaDeviceSynchronize();
     cudaEventRecord(stop, 0);
     cudaDeviceSynchronize();
     cudaEventElapsedTime(&time, start, stop);
