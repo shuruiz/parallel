@@ -69,7 +69,7 @@ int main(int argc, char** argv){
 	// init below 
 	for(int i =0; i<m; i++){
 		A[i] = rand()%1000000;
-		B[i] = rand()%50000;
+		B[i] = rand()%20000;
 	}
 
 	int len_c = *std::max_element(B,B+m);
