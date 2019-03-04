@@ -10,6 +10,7 @@
 #include <ctime>
 #include <cuda.h>
 #include <float.h>
+#include <fstream>
 #include <algorithm>
 #include <stdio.h>
 #define THREADS_PER_DIM 32
@@ -54,7 +55,22 @@ void mapping(double *d_A, int *d_B, double *d_C,int m){
 }
 
 int main(int argc, char** argv){
-	int m= atoi(argv[1]);
+	ifstream mA, mB;
+	mA.open("/Users/ethan/Documents/repo/parallel/flux_itsc/A.txt"); 
+	mB.open("/Users/ethan/Documents/repo/parallel/flux_itsc/B.txt"); 
+	std::vector<double>numbers;
+	double number;
+	while(mA >> number){numbers.push_back(number);}
+    if(numbers.empty()){cout<<"empty\n";}
+    cout<<"A size"<<numbers.size()<<'\n';
+
+    std::vector<int>indexes;
+    int index;
+    while(mB >> index){indexes.push_back(index);}
+    cout<<"B size"<<indexes.size()<<'\n';
+
+
+	int m= numbers.size(); 
 	// int m =1000000;
 	//n = atoi(argv[2]);
 	double *A,*C;
@@ -67,10 +83,15 @@ int main(int argc, char** argv){
 
 
 	// init below 
-	for(int i =0; i<m; i++){
-		A[i] = rand()%1000000;
-		B[i] = rand()%500000;
+	for(std::vector<int>::size_type i = 0; i <numbers.size(); i++) {
+    A[i] = numbers[i];
+    B[i] = indexes[i];
 	}
+
+	// for(int i =0; i<m; i++){
+	// 	A[i] = rand()%1000000;
+	// 	B[i] = rand()%500000;
+	// }
 
 	int len_c = *std::max_element(B,B+m);
 	int size_c =  len_c *sizeof(double);

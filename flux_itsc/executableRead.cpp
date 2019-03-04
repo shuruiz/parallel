@@ -49,6 +49,8 @@ int main(int argc, char** argv){
     if(numbers.empty()){cout<<"empty\n";}
     // cout<<numbers[0]<<numbers[1]<<numbers[2]<<endl;
     cout<<numbers.size()<<'\n';
+    int m = numbers.size(); 
+    printf("length %d \n", m);
     cout<<endl;
 
     std::vector<int>indexes;
@@ -59,6 +61,19 @@ int main(int argc, char** argv){
     printf("%s\n", "get B");
     // printf("top3B %d, %d, %d  \n", indexes[0], indexes[1], indexes[2]);
     cout<<indexes.size()<<'\n';
+    for(std::vector<int>::size_type i = 0; i <30; i++) {
+    cout<<indexes[i]<<endl;
+}
+// 	for(std::vector<T>::iterator it = v.begin(); it != v.end(); ++it) {
+//     /* std::cout << *it; ... */
+// }
+
+//     for ( auto i = numbers.begin(); i != numbers.begin() +30; i++ ) {
+//     std::cout << *i << std::endl;
+// }
+
+
+
     return 0;
 
 }
