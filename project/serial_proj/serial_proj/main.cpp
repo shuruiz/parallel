@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <cmath>
+#include <random>
 #include <ctime>
 #include <float.h>
 
@@ -16,7 +17,8 @@ using namespace std;
 
 int main(int argc, char** argv){
     // int m= atoi(argv[1]);
-    int m =40000000;
+    int m =100000000;
+    int n = 5000000;
     //n = atoi(argv[2]);
     double *A,*C;
     int *B; // index
@@ -28,9 +30,13 @@ int main(int argc, char** argv){
     
     
     // init below
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> dis(0, n);
+    
     for(int i =0; i<m; i++){
         A[i] = rand()%100000;
-        B[i] = rand()%500000;
+        B[i] = dis(gen);
     }
     
     int len_c = *std::max_element(B,B+m);
@@ -45,10 +51,10 @@ int main(int argc, char** argv){
     for(int k=0; k<m; k++){
         int index =B[k];
         C[index] += A[k];
-        if(k%1000==0){
-            cout<<k<<endl;
+//        if(k%1000==0){
+//            cout<<k<<endl;
             
-        }
+//        }
     }
 
     
