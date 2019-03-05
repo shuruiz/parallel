@@ -12,6 +12,7 @@
 #include <float.h>
 #include <fstream>
 #include <algorithm>
+#include <vector>
 #include <stdio.h>
 #define THREADS_PER_DIM 32
 using namespace std;
