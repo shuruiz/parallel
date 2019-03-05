@@ -56,8 +56,8 @@ void mapping(double *d_A, int *d_B, double *d_C,int m){
 
 int main(int argc, char** argv){
 	ifstream mA, mB;
-	mA.open("/Users/ethan/Documents/repo/parallel/flux_itsc/A.txt"); 
-	mB.open("/Users/ethan/Documents/repo/parallel/flux_itsc/B.txt"); 
+	mA.open("/home/shuruiz/eecs_parallel/parallel/flux_itsc/A.txt"); 
+	mB.open("/home/shuruiz/eecs_parallel/parallel/flux_itsc/B.txt"); 
 	std::vector<double>numbers;
 	double number;
 	while(mA >> number){numbers.push_back(number);}
@@ -84,8 +84,8 @@ int main(int argc, char** argv){
 
 	// init below 
 	for(std::vector<int>::size_type i = 0; i <numbers.size(); i++) {
-    A[i] = numbers[i];
-    B[i] = indexes[i];
+		A[i] = numbers[i];
+		B[i] = indexes[i];
 	}
 
 	// for(int i =0; i<m; i++){
