@@ -12,7 +12,7 @@
 #include <float.h>
 #include <algorithm>
 #include <stdio.h>
-#include <random>
+
 #define THREADS_PER_DIM 32
 using namespace std;
 
@@ -54,6 +54,14 @@ void mapping(double *d_A, int *d_B, double *d_C,int m){
 	__syncthreads();
 }
 
+int uniform_distribution(int rangeLow, int rangeHigh)
+{
+    int myRand = (int)rand();
+    int range = rangeHigh - rangeLow ; //+1 makes it [rangeLow, rangeHigh], inclusive.
+    int myRand_scaled = (myRand % range) + rangeLow;
+    return myRand_scaled;
+}
+
 int main(int argc, char** argv){
 	int m= atoi(argv[1]);
 	int n = 80000;
@@ -69,13 +77,13 @@ int main(int argc, char** argv){
 
 
 	// init below 
-	std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> dis(0, n);
+	// std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    // std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    // std::uniform_int_distribution<> dis(0, n);
 
 	for(int i =0; i<m; i++){
 		A[i] = rand()%100000;
-		B[i] = dis(gen);
+		B[i] = uniform_distribution(0,n);
 	}
 
 	int len_c = *std::max_element(B,B+m);
