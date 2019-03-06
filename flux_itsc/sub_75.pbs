@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -S /bin/sh
-#PBS -N 752
+#PBS -N 762
 #PBS -A nmasoud_fluxg
 #PBS -l qos=flux
 
