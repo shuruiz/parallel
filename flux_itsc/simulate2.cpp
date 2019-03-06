@@ -11,6 +11,7 @@
 #include <cuda.h>
 #include <float.h>
 #include <algorithm>
+#include <random>
 #include <stdio.h>
 #define THREADS_PER_DIM 32
 using namespace std;

@@ -12,6 +12,7 @@
 #include <float.h>
 #include <algorithm>
 #include <stdio.h>
+#include <random>
 #define THREADS_PER_DIM 32
 using namespace std;
 
