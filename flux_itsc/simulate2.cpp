@@ -55,7 +55,7 @@ void mapping(double *d_A, int *d_B, double *d_C,int m){
 
 int main(int argc, char** argv){
 	int m= atoi(argv[1]);
-	int n = 80000;
+	int n = 800000;
 	// int m =1000000;
 	//n = atoi(argv[2]);
 	double *A,*C;

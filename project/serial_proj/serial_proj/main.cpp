@@ -17,8 +17,8 @@ using namespace std;
 
 int main(int argc, char** argv){
     // int m= atoi(argv[1]);
-    int m =100000000;
-    int n = 5000000;
+    int m =800000000;
+    int n =800000;
     //n = atoi(argv[2]);
     double *A,*C;
     int *B; // index
