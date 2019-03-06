@@ -1,3 +1,0 @@
-I ran on:
-nyx7506
-/var/spool/torque/mom_priv/jobs/32948846.nyx.arc-ts.umich.edu.SC: line 16: 12920 Segmentation fault      (core dumped) ./simulate 8000000000

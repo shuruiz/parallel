@@ -64,7 +64,7 @@ int uniform_distribution(int rangeLow, int rangeHigh)
 
 int main(int argc, char** argv){
 	int m= atoi(argv[1]);
-	int n = 800000;
+	int n =100000;
 	// int m =1000000;
 	//n = atoi(argv[2]);
 	double *A,*C;
