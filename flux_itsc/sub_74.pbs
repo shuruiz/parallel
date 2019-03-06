@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -S /bin/sh
-#PBS -N 74
+#PBS -N 744
 #PBS -A nmasoud_fluxg
 #PBS -l qos=flux
 
@@ -13,4 +13,4 @@ echo "I ran on:"
 cat $PBS_NODEFILE
 # Let PBS handle your output
 cd /home/shuruiz/eecs_parallel/parallel/flux_itsc
-./simulate 4000000
+./simulate 40000000
