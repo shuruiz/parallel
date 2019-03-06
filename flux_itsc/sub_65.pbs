@@ -13,4 +13,4 @@ echo "I ran on:"
 cat $PBS_NODEFILE
 # Let PBS handle your output
 cd /home/shuruiz/eecs_parallel/parallel/flux_itsc
-./simulate2 8000000
+./simulate2 1000000
