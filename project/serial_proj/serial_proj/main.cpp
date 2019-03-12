@@ -25,8 +25,8 @@ int uniform_distribution(int rangeLow, int rangeHigh)
 
 int main(int argc, char** argv){
     // int m= atoi(argv[1]);
-    int m =80000000;
-    int n =1000000;
+    int m =10000000;
+    int n =10000;
     //n = atoi(argv[2]);
     double *A,*C;
     int *B; // index
